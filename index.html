@@ -52,21 +52,36 @@
                        onkeyup="renderLibrary()">
                 
                 <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    
                     <select id="filterStatus" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
-                        <option value="all">All Statuses</option>
+                        <option value="all">Reading: All</option>
                         <option value="read">Read</option>
                         <option value="unread">Unread</option>
                     </select>
+
                     <select id="filterChapters" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
-                        <option value="all">Any Length</option>
+                        <option value="all">Length: Any</option>
                         <option value="short">Short (<10 ch)</option>
                         <option value="medium">Medium (10-50 ch)</option>
                         <option value="long">Long (>50 ch)</option>
                     </select>
+
+                    <select id="filterCompletion" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
+                        <option value="all">Status: All</option>
+                        <option value="complete">Complete</option>
+                        <option value="wip">WIP</option>
+                    </select>
+
+                    <select id="filterCover" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
+                        <option value="all">Cover: All</option>
+                        <option value="yes">Cover Made</option>
+                        <option value="not">No Cover</option>
+                    </select>
+
                     <select id="sortOption" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
-                        <option value="date">Newest</option>
-                        <option value="az">Title A-Z</option>
-                        <option value="words">Word Count</option>
+                        <option value="date">Sort: Newest</option>
+                        <option value="az">Sort: Title A-Z</option>
+                        <option value="words">Sort: Word Count</option>
                     </select>
                 </div>
             </div>
@@ -168,9 +183,14 @@
                     </select>
                 </div>
 
-                <div id="divDateFinished" class="hidden">
-                    <label class="text-xs text-gray-400 ml-1 mb-1 block">Date Finished</label>
-                    <input type="date" id="inpDateFinished" class="input-field">
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="inpStatus" class="input-field">
+                        <option value="wip">WIP</option>
+                        <option value="complete">Complete</option>
+                    </select>
+                    <div id="divDateFinished" class="hidden w-full">
+                        <input type="date" id="inpDateFinished" class="input-field">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -232,18 +252,33 @@
             list.innerHTML = '';
             
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('filterStatus').value;
+            const statusFilter = document.getElementById('filterStatus').value; // Read/Unread
             const chapterFilter = document.getElementById('filterChapters').value;
+            const completionFilter = document.getElementById('filterCompletion').value; // Complete/WIP
+            const coverFilter = document.getElementById('filterCover').value; // Cover/No Cover
             const sortMode = document.getElementById('sortOption').value;
 
             let filtered = fics.filter(f => {
+                // 1. Read Status
                 if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
                 
+                // 2. Chapters
                 const chaps = f.chapters || 0;
                 if (chapterFilter === 'short' && chaps >= 10) return false;
                 if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false;
                 if (chapterFilter === 'long' && chaps <= 50) return false;
 
+                // 3. Completion Status (NEW)
+                if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
+
+                // 4. Cover Status (NEW)
+                if (coverFilter !== 'all') {
+                    const hasCover = (f.coverStatus === 'yes');
+                    if (coverFilter === 'yes' && !hasCover) return false;
+                    if (coverFilter === 'not' && hasCover) return false;
+                }
+
+                // 5. Search
                 if (search) {
                     const txt = `${f.title} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase();
                     return txt.includes(search);
@@ -251,29 +286,38 @@
                 return true;
             });
 
+            // Sorting
             filtered.sort((a, b) => {
                 if (sortMode === 'az') return a.title.localeCompare(b.title);
                 if (sortMode === 'words') return (b.wordcount || 0) - (a.wordcount || 0);
-                return 0; // Newest by insertion order
+                return 0; // Newest
             });
 
             filtered.forEach(f => {
                 const isRead = f.rereadStatus === 'read';
+                const hasCover = f.coverStatus === 'yes';
+                
+                // Determine Status Badge (Visual Fix)
+                const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
+                const statusBadge = isComplete 
+                    ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-900 text-blue-200 border border-blue-700">Complete</span>' 
+                    : '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-900 text-yellow-200 border border-yellow-700">WIP</span>';
+
                 const item = document.createElement('div');
                 item.className = 'bg-gray-800 p-4 rounded-xl flex justify-between cursor-pointer hover:bg-gray-750';
                 item.onclick = () => openEditModal(f.id);
                 item.innerHTML = `
-                    <div class="flex-1 min-w-0">
-                        <h3 class="font-bold text-white truncate">${f.title}</h3>
-                        <div class="flex items-center gap-2 mt-1 text-xs">
-                            <span class="bg-gray-700 px-2 py-0.5 rounded text-gray-300 truncate max-w-[120px]">${f.fandom}</span>
-                            ${isRead ? '<i class="fa-solid fa-circle-check text-green-500"></i>' : ''}
-                            ${f.coverStatus === 'yes' ? '<i class="fa-solid fa-image text-yellow-600"></i>' : ''}
+                    <div class="flex-1 min-w-0 pr-2">
+                        <h3 class="font-bold text-white truncate leading-tight">${f.title}</h3>
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                            <span class="text-[10px] bg-gray-700 px-2 py-0.5 rounded text-gray-300 border border-gray-600 truncate max-w-[100px]">${f.fandom}</span>
+                            ${statusBadge} ${isRead ? '<i class="fa-solid fa-circle-check text-green-500 text-sm"></i>' : ''}
+                            ${hasCover ? '<i class="fa-solid fa-image text-yellow-600 text-sm"></i>' : ''}
                         </div>
                     </div>
-                    <div class="text-right pl-2 text-xs text-gray-500 flex flex-col justify-center">
+                    <div class="text-right pl-2 text-xs text-gray-500 flex flex-col justify-center min-w-[60px]">
                         <span>${(f.wordcount||0).toLocaleString()}w</span>
-                        ${f.chapters ? `<span>${f.chapters}ch</span>` : ''}
+                        ${f.chapters ? `<span>${f.chapters} ch</span>` : ''}
                     </div>
                 `;
                 list.appendChild(item);
@@ -374,7 +418,6 @@
             const dateDiv = document.getElementById('divDateFinished');
             if (status === 'read') {
                 dateDiv.classList.remove('hidden');
-                // Set default to today if empty
                 if(!document.getElementById('inpDateFinished').value) {
                     document.getElementById('inpDateFinished').valueAsDate = new Date();
                 }
@@ -387,7 +430,7 @@
             document.getElementById('ficForm').reset();
             document.getElementById('editId').value = '';
             document.getElementById('modalTitle').innerText = 'Add Fic';
-            toggleDateVisibility(); // Initialize date visibility
+            toggleDateVisibility(); 
             document.getElementById('ficModal').classList.remove('hidden');
         }
 
@@ -403,22 +446,22 @@
             document.getElementById('inpLink').value = f.originalLink || '';
             document.getElementById('inpReadStatus').value = f.rereadStatus || 'unread';
             document.getElementById('inpCoverStatus').value = f.coverStatus || 'not';
+            document.getElementById('inpStatus').value = f.status || 'wip'; // Load Completion Status
             document.getElementById('inpWords').value = f.wordcount || '';
             document.getElementById('inpChapters').value = f.chapters || '';
             document.getElementById('inpSummary').value = f.summary || '';
             document.getElementById('inpShips').value = (f.ships||[]).join(', ');
             document.getElementById('inpTags').value = (f.tags||[]).join(', ');
 
-            // Set Date
             const dateInput = document.getElementById('inpDateFinished');
             if(f.dateFinished) {
                 const d = parseDate(f.dateFinished);
-                if(d) dateInput.value = d.toISOString().split('T')[0]; // YYYY-MM-DD
+                if(d) dateInput.value = d.toISOString().split('T')[0];
             } else {
                 dateInput.value = '';
             }
             
-            toggleDateVisibility(); // Show/Hide based on loaded status
+            toggleDateVisibility(); 
             document.getElementById('ficModal').classList.remove('hidden');
         }
 
@@ -430,7 +473,6 @@
             const readStatus = document.getElementById('inpReadStatus').value;
             const dateVal = document.getElementById('inpDateFinished').value;
 
-            // Handle date saving
             let dateFinished = null;
             if (readStatus === 'read' && dateVal) {
                 dateFinished = new Date(dateVal).toISOString();
@@ -444,12 +486,12 @@
                 originalLink: document.getElementById('inpLink').value,
                 rereadStatus: readStatus,
                 coverStatus: document.getElementById('inpCoverStatus').value,
+                status: document.getElementById('inpStatus').value, // Save Status
                 wordcount: parseInt(document.getElementById('inpWords').value) || 0,
                 chapters: parseInt(document.getElementById('inpChapters').value) || 0,
                 summary: document.getElementById('inpSummary').value,
                 ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s),
                 tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
-                status: 'wip',
                 dateFinished: dateFinished
             };
 
@@ -463,14 +505,12 @@
             closeModal();
         }
 
-        // --- HELPERS ---
         function parseDate(input) {
             if(!input) return null;
-            if(typeof input === 'number') return new Date((input + 978307200) * 1000); // Swift Time
-            return new Date(input); // ISO String
+            if(typeof input === 'number') return new Date((input + 978307200) * 1000);
+            return new Date(input);
         }
 
-        // --- EXPORT/FILE UTILS ---
         function handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
