@@ -7,8 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Fix for bottom nav safe area on iOS */
         .safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
+        /* Hide scrollbar for clean horizontal scrolling */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Date input styling to match */
+        input[type="date"] { color-scheme: dark; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased">
@@ -112,12 +116,7 @@
 
         <div id="tab-report" class="tab-content hidden">
             <h1 class="text-2xl font-bold mb-6">Reading Report</h1>
-            <div id="reportContent" class="space-y-6">
-                <div class="text-center text-gray-500 mt-10">
-                    <p>No reading history found.</p>
-                    <p class="text-xs mt-2">Mark fics as 'Read' to see them here.</p>
-                </div>
-            </div>
+            <div id="reportContent" class="space-y-6"></div>
         </div>
 
         <div id="tab-settings" class="tab-content hidden">
@@ -159,7 +158,7 @@
                 <input type="url" id="inpLink" placeholder="Link" class="input-field">
                 
                 <div class="grid grid-cols-2 gap-3">
-                    <select id="inpReadStatus" class="input-field">
+                    <select id="inpReadStatus" class="input-field" onchange="toggleDateVisibility()">
                         <option value="unread">Unread</option>
                         <option value="read">Read</option>
                     </select>
@@ -167,6 +166,11 @@
                         <option value="not">No Cover</option>
                         <option value="yes">Cover Made</option>
                     </select>
+                </div>
+
+                <div id="divDateFinished" class="hidden">
+                    <label class="text-xs text-gray-400 ml-1 mb-1 block">Date Finished</label>
+                    <input type="date" id="inpDateFinished" class="input-field">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -195,9 +199,8 @@
             const stored = localStorage.getItem('ficLibData');
             if (stored) {
                 fics = JSON.parse(stored);
-                // Fix any dates that might be strings from old imports
+                // Standardize data
                 fics.forEach(f => {
-                    // Standardize legacy keys
                     if(f.cover_status) { f.coverStatus = f.cover_status; delete f.cover_status; }
                     if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
                     if(f.date_finished) { f.dateFinished = f.date_finished; delete f.date_finished; }
@@ -234,16 +237,13 @@
             const sortMode = document.getElementById('sortOption').value;
 
             let filtered = fics.filter(f => {
-                // 1. Status Filter
                 if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
                 
-                // 2. Chapter Filter (NEW)
                 const chaps = f.chapters || 0;
                 if (chapterFilter === 'short' && chaps >= 10) return false;
                 if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false;
                 if (chapterFilter === 'long' && chaps <= 50) return false;
 
-                // 3. Search
                 if (search) {
                     const txt = `${f.title} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase();
                     return txt.includes(search);
@@ -251,12 +251,10 @@
                 return true;
             });
 
-            // Sorting
             filtered.sort((a, b) => {
                 if (sortMode === 'az') return a.title.localeCompare(b.title);
                 if (sortMode === 'words') return (b.wordcount || 0) - (a.wordcount || 0);
-                // Default: Date Added (Using index logic since IDs aren't timestamped in standard JSON)
-                return 0; 
+                return 0; // Newest by insertion order
             });
 
             filtered.forEach(f => {
@@ -286,7 +284,6 @@
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
             
-            // Stats
             document.getElementById('stat-total').innerText = fics.length;
             document.getElementById('stat-words').innerText = readFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             document.getElementById('stat-read-count').innerText = `Read: ${readFics.length}`;
@@ -295,7 +292,6 @@
             const pct = fics.length ? (readFics.length / fics.length) * 100 : 0;
             document.getElementById('stat-progress-bar').style.width = `${pct}%`;
 
-            // Top Lists Helpers
             const getTop = (list, keyFn) => {
                 const counts = {};
                 list.forEach(f => {
@@ -308,7 +304,7 @@
 
             renderTopList('list-top-fandoms', getTop(readFics, f => f.fandom));
             renderTopList('list-top-ships', getTop(readFics, f => f.ships));
-            renderTopList('list-top-tags', getTop(readFics, f => f.tags)); // NEW
+            renderTopList('list-top-tags', getTop(readFics, f => f.tags));
         }
 
         function renderTopList(id, data) {
@@ -323,10 +319,9 @@
             });
         }
 
-        // --- REPORT LOGIC (NEW) ---
+        // --- REPORT LOGIC ---
         function updateReport() {
             const container = document.getElementById('reportContent');
-            // Filter for read fics that HAVE a dateFinished property
             const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
             
             if (finished.length === 0) {
@@ -334,57 +329,38 @@
                 return;
             }
 
-            // Group by Year -> Month
             const groups = {};
             finished.forEach(f => {
-                // Convert Swift Double timestamp or ISO string to JS Date
-                let d;
-                if (typeof f.dateFinished === 'number') {
-                    // Swift default is seconds since 2001 (978307200 offset)
-                    d = new Date((f.dateFinished + 978307200) * 1000);
-                } else {
-                    d = new Date(f.dateFinished);
-                }
-                
-                if (isNaN(d.getTime())) return; // Skip invalid dates
+                let d = parseDate(f.dateFinished);
+                if (!d) return;
 
                 const year = d.getFullYear();
-                const month = d.getMonth(); // 0-11
-                
+                const month = d.getMonth();
                 if (!groups[year]) groups[year] = {};
                 if (!groups[year][month]) groups[year][month] = [];
                 groups[year][month].push({ ...f, dateObj: d });
             });
 
             container.innerHTML = '';
-            // Sort Years Descending
             Object.keys(groups).sort((a,b) => b - a).forEach(year => {
+                const yearCount = Object.values(groups[year]).reduce((sum, arr) => sum + arr.length, 0);
                 const yearDiv = document.createElement('div');
                 yearDiv.className = 'bg-gray-800 rounded-xl overflow-hidden';
-                
-                // Count fics in year
-                const yearCount = Object.values(groups[year]).reduce((sum, arr) => sum + arr.length, 0);
-                
                 yearDiv.innerHTML = `<div class="bg-gray-700 px-4 py-2 font-bold flex justify-between"><span>${year}</span><span class="text-xs bg-gray-600 px-2 py-0.5 rounded">${yearCount} Fics</span></div>`;
                 
-                // Sort Months Descending
                 Object.keys(groups[year]).sort((a,b) => b - a).forEach(month => {
                     const monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
                     const monthList = groups[year][month];
-                    
                     const monthDiv = document.createElement('div');
                     monthDiv.className = 'p-4 border-b border-gray-700 last:border-0';
                     monthDiv.innerHTML = `<h4 class="font-bold text-blue-400 text-sm mb-2">${monthName} (${monthList.length})</h4>`;
                     
-                    // Sort Fics by Date Descending
                     monthList.sort((a,b) => b.dateObj - a.dateObj).forEach(f => {
-                        const dateStr = f.dateObj.toLocaleDateString(undefined, {month:'numeric', day:'numeric'});
                         monthDiv.innerHTML += `
                             <div class="flex justify-between items-center text-sm py-1">
                                 <span class="truncate w-3/4">${f.title}</span>
-                                <span class="text-gray-500 text-xs">${dateStr}</span>
-                            </div>
-                        `;
+                                <span class="text-gray-500 text-xs">${f.dateObj.toLocaleDateString(undefined, {month:'numeric', day:'numeric'})}</span>
+                            </div>`;
                     });
                     yearDiv.appendChild(monthDiv);
                 });
@@ -392,7 +368,109 @@
             });
         }
 
-        // --- FILE HANDLING ---
+        // --- FORMS & DATE ---
+        function toggleDateVisibility() {
+            const status = document.getElementById('inpReadStatus').value;
+            const dateDiv = document.getElementById('divDateFinished');
+            if (status === 'read') {
+                dateDiv.classList.remove('hidden');
+                // Set default to today if empty
+                if(!document.getElementById('inpDateFinished').value) {
+                    document.getElementById('inpDateFinished').valueAsDate = new Date();
+                }
+            } else {
+                dateDiv.classList.add('hidden');
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('ficForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('modalTitle').innerText = 'Add Fic';
+            toggleDateVisibility(); // Initialize date visibility
+            document.getElementById('ficModal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const f = fics.find(x => x.id === id);
+            if(!f) return;
+            document.getElementById('editId').value = f.id;
+            document.getElementById('modalTitle').innerText = 'Edit Fic';
+            
+            document.getElementById('inpTitle').value = f.title;
+            document.getElementById('inpAuthor').value = f.author || '';
+            document.getElementById('inpFandom').value = f.fandom || '';
+            document.getElementById('inpLink').value = f.originalLink || '';
+            document.getElementById('inpReadStatus').value = f.rereadStatus || 'unread';
+            document.getElementById('inpCoverStatus').value = f.coverStatus || 'not';
+            document.getElementById('inpWords').value = f.wordcount || '';
+            document.getElementById('inpChapters').value = f.chapters || '';
+            document.getElementById('inpSummary').value = f.summary || '';
+            document.getElementById('inpShips').value = (f.ships||[]).join(', ');
+            document.getElementById('inpTags').value = (f.tags||[]).join(', ');
+
+            // Set Date
+            const dateInput = document.getElementById('inpDateFinished');
+            if(f.dateFinished) {
+                const d = parseDate(f.dateFinished);
+                if(d) dateInput.value = d.toISOString().split('T')[0]; // YYYY-MM-DD
+            } else {
+                dateInput.value = '';
+            }
+            
+            toggleDateVisibility(); // Show/Hide based on loaded status
+            document.getElementById('ficModal').classList.remove('hidden');
+        }
+
+        function closeModal() { document.getElementById('ficModal').classList.add('hidden'); }
+        
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const readStatus = document.getElementById('inpReadStatus').value;
+            const dateVal = document.getElementById('inpDateFinished').value;
+
+            // Handle date saving
+            let dateFinished = null;
+            if (readStatus === 'read' && dateVal) {
+                dateFinished = new Date(dateVal).toISOString();
+            }
+
+            const obj = {
+                id: id || crypto.randomUUID(),
+                title: document.getElementById('inpTitle').value,
+                author: document.getElementById('inpAuthor').value,
+                fandom: document.getElementById('inpFandom').value,
+                originalLink: document.getElementById('inpLink').value,
+                rereadStatus: readStatus,
+                coverStatus: document.getElementById('inpCoverStatus').value,
+                wordcount: parseInt(document.getElementById('inpWords').value) || 0,
+                chapters: parseInt(document.getElementById('inpChapters').value) || 0,
+                summary: document.getElementById('inpSummary').value,
+                ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s),
+                tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
+                status: 'wip',
+                dateFinished: dateFinished
+            };
+
+            if(id) {
+                const idx = fics.findIndex(x => x.id === id);
+                fics[idx] = { ...fics[idx], ...obj };
+            } else {
+                fics.unshift(obj);
+            }
+            saveData();
+            closeModal();
+        }
+
+        // --- HELPERS ---
+        function parseDate(input) {
+            if(!input) return null;
+            if(typeof input === 'number') return new Date((input + 978307200) * 1000); // Swift Time
+            return new Date(input); // ISO String
+        }
+
+        // --- EXPORT/FILE UTILS ---
         function handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -400,7 +478,6 @@
             reader.onload = (ev) => {
                 try {
                     const json = JSON.parse(ev.target.result);
-                    // Normalize structure
                     fics = Array.isArray(json) ? json : (json.fics || []);
                     saveData();
                     alert(`Imported ${fics.length} fics!`);
@@ -421,82 +498,7 @@
         }
 
         function clearData() {
-            if(confirm("Delete all data?")) {
-                fics = [];
-                saveData();
-                switchTab('library');
-            }
-        }
-
-        // --- FORMS ---
-        function openAddModal() {
-            document.getElementById('ficForm').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('modalTitle').innerText = 'Add Fic';
-            document.getElementById('ficModal').classList.remove('hidden');
-        }
-        function openEditModal(id) {
-            const f = fics.find(x => x.id === id);
-            if(!f) return;
-            document.getElementById('editId').value = f.id;
-            document.getElementById('modalTitle').innerText = 'Edit Fic';
-            document.getElementById('inpTitle').value = f.title;
-            document.getElementById('inpAuthor').value = f.author || '';
-            document.getElementById('inpFandom').value = f.fandom || '';
-            document.getElementById('inpLink').value = f.originalLink || '';
-            document.getElementById('inpReadStatus').value = f.rereadStatus || 'unread';
-            document.getElementById('inpCoverStatus').value = f.coverStatus || 'not';
-            document.getElementById('inpWords').value = f.wordcount || '';
-            document.getElementById('inpChapters').value = f.chapters || '';
-            document.getElementById('inpSummary').value = f.summary || '';
-            document.getElementById('inpShips').value = (f.ships||[]).join(', ');
-            document.getElementById('inpTags').value = (f.tags||[]).join(', ');
-            document.getElementById('ficModal').classList.remove('hidden');
-        }
-        function closeModal() { document.getElementById('ficModal').classList.add('hidden'); }
-        
-        function handleFormSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('editId').value;
-            const readStatus = document.getElementById('inpReadStatus').value;
-            
-            // Date Logic: If changing to 'read' and no date exists, add now
-            let dateFinished = null;
-            if (id) {
-                const existing = fics.find(x => x.id === id);
-                dateFinished = existing.dateFinished;
-                // If currently unread, wipe date. If becoming read, set date if empty.
-                if (readStatus === 'unread') dateFinished = null;
-                else if (readStatus === 'read' && !dateFinished) dateFinished = new Date().toISOString();
-            } else {
-                if (readStatus === 'read') dateFinished = new Date().toISOString();
-            }
-
-            const obj = {
-                id: id || crypto.randomUUID(),
-                title: document.getElementById('inpTitle').value,
-                author: document.getElementById('inpAuthor').value,
-                fandom: document.getElementById('inpFandom').value,
-                originalLink: document.getElementById('inpLink').value,
-                rereadStatus: readStatus,
-                coverStatus: document.getElementById('inpCoverStatus').value,
-                wordcount: parseInt(document.getElementById('inpWords').value) || 0,
-                chapters: parseInt(document.getElementById('inpChapters').value) || 0,
-                summary: document.getElementById('inpSummary').value,
-                ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s),
-                tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
-                status: 'wip', // default
-                dateFinished: dateFinished
-            };
-
-            if(id) {
-                const idx = fics.findIndex(x => x.id === id);
-                fics[idx] = { ...fics[idx], ...obj };
-            } else {
-                fics.unshift(obj);
-            }
-            saveData();
-            closeModal();
+            if(confirm("Delete all data?")) { fics = []; saveData(); switchTab('library'); }
         }
     </script>
 </body>
