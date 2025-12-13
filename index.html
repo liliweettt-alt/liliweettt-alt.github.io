@@ -8,10 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
-        /* Hide scrollbar for clean horizontal scrolling */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Date input styling to match */
         input[type="date"] { color-scheme: dark; }
     </style>
 </head>
@@ -52,32 +50,27 @@
                        onkeyup="renderLibrary()">
                 
                 <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                    
                     <select id="filterStatus" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
                         <option value="all">Reading: All</option>
                         <option value="read">Read</option>
                         <option value="unread">Unread</option>
                     </select>
-
                     <select id="filterChapters" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
                         <option value="all">Length: Any</option>
                         <option value="short">Short (<10 ch)</option>
                         <option value="medium">Medium (10-50 ch)</option>
                         <option value="long">Long (>50 ch)</option>
                     </select>
-
                     <select id="filterCompletion" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
                         <option value="all">Status: All</option>
                         <option value="complete">Complete</option>
                         <option value="wip">WIP</option>
                     </select>
-
                     <select id="filterCover" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
                         <option value="all">Cover: All</option>
                         <option value="yes">Cover Made</option>
                         <option value="not">No Cover</option>
                     </select>
-
                     <select id="sortOption" onchange="renderLibrary()" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs flex-shrink-0">
                         <option value="date">Sort: Newest</option>
                         <option value="az">Sort: Title A-Z</option>
@@ -202,7 +195,12 @@
                 <input type="text" id="inpShips" placeholder="Ships (comma sep)" class="input-field">
                 <input type="text" id="inpTags" placeholder="Tags (comma sep)" class="input-field">
 
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold mt-4">Save Fic</button>
+                <div class="flex gap-3 mt-4">
+                    <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-bold w-1/4">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-bold flex-1">Save Fic</button>
+                </div>
             </form>
         </div>
     </div>
@@ -219,7 +217,7 @@
             const stored = localStorage.getItem('ficLibData');
             if (stored) {
                 fics = JSON.parse(stored);
-                // Standardize data
+                // Standardize
                 fics.forEach(f => {
                     if(f.cover_status) { f.coverStatus = f.cover_status; delete f.cover_status; }
                     if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
@@ -246,39 +244,34 @@
             renderLibrary();
         }
 
-        // --- LIBRARY LOGIC ---
+        // --- LIBRARY RENDER ---
         function renderLibrary() {
             const list = document.getElementById('ficList');
             list.innerHTML = '';
             
             const search = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('filterStatus').value; // Read/Unread
+            const statusFilter = document.getElementById('filterStatus').value;
             const chapterFilter = document.getElementById('filterChapters').value;
-            const completionFilter = document.getElementById('filterCompletion').value; // Complete/WIP
-            const coverFilter = document.getElementById('filterCover').value; // Cover/No Cover
+            const completionFilter = document.getElementById('filterCompletion').value;
+            const coverFilter = document.getElementById('filterCover').value;
             const sortMode = document.getElementById('sortOption').value;
 
             let filtered = fics.filter(f => {
-                // 1. Read Status
                 if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
                 
-                // 2. Chapters
                 const chaps = f.chapters || 0;
                 if (chapterFilter === 'short' && chaps >= 10) return false;
                 if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false;
                 if (chapterFilter === 'long' && chaps <= 50) return false;
 
-                // 3. Completion Status (NEW)
                 if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
-
-                // 4. Cover Status (NEW)
+                
                 if (coverFilter !== 'all') {
                     const hasCover = (f.coverStatus === 'yes');
                     if (coverFilter === 'yes' && !hasCover) return false;
                     if (coverFilter === 'not' && hasCover) return false;
                 }
 
-                // 5. Search
                 if (search) {
                     const txt = `${f.title} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase();
                     return txt.includes(search);
@@ -286,18 +279,15 @@
                 return true;
             });
 
-            // Sorting
             filtered.sort((a, b) => {
                 if (sortMode === 'az') return a.title.localeCompare(b.title);
                 if (sortMode === 'words') return (b.wordcount || 0) - (a.wordcount || 0);
-                return 0; // Newest
+                return 0; 
             });
 
             filtered.forEach(f => {
                 const isRead = f.rereadStatus === 'read';
                 const hasCover = f.coverStatus === 'yes';
-                
-                // Determine Status Badge (Visual Fix)
                 const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
                 const statusBadge = isComplete 
                     ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-900 text-blue-200 border border-blue-700">Complete</span>' 
@@ -311,7 +301,8 @@
                         <h3 class="font-bold text-white truncate leading-tight">${f.title}</h3>
                         <div class="flex flex-wrap items-center gap-2 mt-2">
                             <span class="text-[10px] bg-gray-700 px-2 py-0.5 rounded text-gray-300 border border-gray-600 truncate max-w-[100px]">${f.fandom}</span>
-                            ${statusBadge} ${isRead ? '<i class="fa-solid fa-circle-check text-green-500 text-sm"></i>' : ''}
+                            ${statusBadge}
+                            ${isRead ? '<i class="fa-solid fa-circle-check text-green-500 text-sm"></i>' : ''}
                             ${hasCover ? '<i class="fa-solid fa-image text-yellow-600 text-sm"></i>' : ''}
                         </div>
                     </div>
@@ -327,12 +318,10 @@
         // --- DASHBOARD LOGIC ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
-            
             document.getElementById('stat-total').innerText = fics.length;
             document.getElementById('stat-words').innerText = readFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             document.getElementById('stat-read-count').innerText = `Read: ${readFics.length}`;
             document.getElementById('stat-unread-count').innerText = `Unread: ${fics.length - readFics.length}`;
-            
             const pct = fics.length ? (readFics.length / fics.length) * 100 : 0;
             document.getElementById('stat-progress-bar').style.width = `${pct}%`;
 
@@ -363,7 +352,7 @@
             });
         }
 
-        // --- REPORT LOGIC ---
+        // --- REPORT LOGIC (Date Fix Applied) ---
         function updateReport() {
             const container = document.getElementById('reportContent');
             const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
@@ -375,7 +364,7 @@
 
             const groups = {};
             finished.forEach(f => {
-                let d = parseDate(f.dateFinished);
+                let d = parseDateLocal(f.dateFinished); // Use Local Fix
                 if (!d) return;
 
                 const year = d.getFullYear();
@@ -412,7 +401,26 @@
             });
         }
 
-        // --- FORMS & DATE ---
+        // --- HELPERS ---
+        // FIX: Handles YYYY-MM-DD strings without timezone shift
+        function parseDateLocal(input) {
+            if(!input) return null;
+            
+            // If it's a number (Swift format), standard Date
+            if(typeof input === 'number') return new Date((input + 978307200) * 1000);
+            
+            // If it's "2023-11-30", parsing as new Date() assumes UTC.
+            // We want to force it to be treated as local midnight.
+            if(typeof input === 'string' && input.includes('-') && input.length === 10) {
+                const [y, m, d] = input.split('-').map(Number);
+                return new Date(y, m - 1, d); // Month is 0-indexed
+            }
+
+            // Fallback for full ISO strings with time
+            return new Date(input); 
+        }
+
+        // --- FORMS ---
         function toggleDateVisibility() {
             const status = document.getElementById('inpReadStatus').value;
             const dateDiv = document.getElementById('divDateFinished');
@@ -430,6 +438,7 @@
             document.getElementById('ficForm').reset();
             document.getElementById('editId').value = '';
             document.getElementById('modalTitle').innerText = 'Add Fic';
+            document.getElementById('btnDelete').classList.add('hidden'); // Hide delete for new
             toggleDateVisibility(); 
             document.getElementById('ficModal').classList.remove('hidden');
         }
@@ -446,36 +455,53 @@
             document.getElementById('inpLink').value = f.originalLink || '';
             document.getElementById('inpReadStatus').value = f.rereadStatus || 'unread';
             document.getElementById('inpCoverStatus').value = f.coverStatus || 'not';
-            document.getElementById('inpStatus').value = f.status || 'wip'; // Load Completion Status
+            document.getElementById('inpStatus').value = f.status || 'wip';
             document.getElementById('inpWords').value = f.wordcount || '';
             document.getElementById('inpChapters').value = f.chapters || '';
             document.getElementById('inpSummary').value = f.summary || '';
             document.getElementById('inpShips').value = (f.ships||[]).join(', ');
             document.getElementById('inpTags').value = (f.tags||[]).join(', ');
 
+            // Set Date Value safely
             const dateInput = document.getElementById('inpDateFinished');
             if(f.dateFinished) {
-                const d = parseDate(f.dateFinished);
-                if(d) dateInput.value = d.toISOString().split('T')[0];
+                // If it's already YYYY-MM-DD
+                if(typeof f.dateFinished === 'string' && f.dateFinished.length === 10) {
+                    dateInput.value = f.dateFinished;
+                } else {
+                    const d = parseDateLocal(f.dateFinished);
+                    if(d) dateInput.value = d.toISOString().split('T')[0];
+                }
             } else {
                 dateInput.value = '';
             }
             
+            document.getElementById('btnDelete').classList.remove('hidden'); // Show delete for edit
             toggleDateVisibility(); 
             document.getElementById('ficModal').classList.remove('hidden');
         }
 
         function closeModal() { document.getElementById('ficModal').classList.add('hidden'); }
         
+        function deleteFic() {
+            if(confirm("Are you sure you want to delete this fic?")) {
+                const id = document.getElementById('editId').value;
+                fics = fics.filter(f => f.id !== id);
+                saveData();
+                closeModal();
+            }
+        }
+
         function handleFormSubmit(e) {
             e.preventDefault();
             const id = document.getElementById('editId').value;
             const readStatus = document.getElementById('inpReadStatus').value;
-            const dateVal = document.getElementById('inpDateFinished').value;
+            const dateVal = document.getElementById('inpDateFinished').value; // YYYY-MM-DD
 
             let dateFinished = null;
+            // Store date as simple YYYY-MM-DD string to avoid timezone headaches completely
             if (readStatus === 'read' && dateVal) {
-                dateFinished = new Date(dateVal).toISOString();
+                dateFinished = dateVal;
             }
 
             const obj = {
@@ -486,7 +512,7 @@
                 originalLink: document.getElementById('inpLink').value,
                 rereadStatus: readStatus,
                 coverStatus: document.getElementById('inpCoverStatus').value,
-                status: document.getElementById('inpStatus').value, // Save Status
+                status: document.getElementById('inpStatus').value,
                 wordcount: parseInt(document.getElementById('inpWords').value) || 0,
                 chapters: parseInt(document.getElementById('inpChapters').value) || 0,
                 summary: document.getElementById('inpSummary').value,
@@ -505,12 +531,7 @@
             closeModal();
         }
 
-        function parseDate(input) {
-            if(!input) return null;
-            if(typeof input === 'number') return new Date((input + 978307200) * 1000);
-            return new Date(input);
-        }
-
+        // --- FILE HANDLING ---
         function handleFileUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
