@@ -11,6 +11,20 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         input[type="date"] { color-scheme: dark; }
+        
+        /* New Style for Suggestion Chips */
+        .chip {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            color: #d1d5db;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .chip:hover { background-color: #2563eb; border-color: #3b82f6; color: white; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased">
@@ -192,8 +206,18 @@
                 </div>
 
                 <textarea id="inpSummary" placeholder="Summary" rows="3" class="input-field"></textarea>
-                <input type="text" id="inpShips" placeholder="Ships (comma sep)" class="input-field">
-                <input type="text" id="inpTags" placeholder="Tags (comma sep)" class="input-field">
+                
+                <div>
+                    <label class="text-xs text-gray-400 ml-1">Ships</label>
+                    <textarea id="inpShips" placeholder="Draco/Hermione, Harry/Ginny..." rows="2" class="input-field"></textarea>
+                    <div id="suggestShips" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+
+                <div>
+                    <label class="text-xs text-gray-400 ml-1">Tags</label>
+                    <textarea id="inpTags" placeholder="Angst, Fluff, AU..." rows="2" class="input-field"></textarea>
+                    <div id="suggestTags" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
 
                 <div class="flex gap-3 mt-4">
                     <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-600 hover:bg-red-700 text-white p-3 rounded-lg font-bold w-1/4">
@@ -352,7 +376,7 @@
             });
         }
 
-        // --- REPORT LOGIC (Date Fix Applied) ---
+        // --- REPORT LOGIC ---
         function updateReport() {
             const container = document.getElementById('reportContent');
             const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
@@ -364,9 +388,8 @@
 
             const groups = {};
             finished.forEach(f => {
-                let d = parseDateLocal(f.dateFinished); // Use Local Fix
+                let d = parseDateLocal(f.dateFinished); 
                 if (!d) return;
-
                 const year = d.getFullYear();
                 const month = d.getMonth();
                 if (!groups[year]) groups[year] = {};
@@ -402,22 +425,65 @@
         }
 
         // --- HELPERS ---
-        // FIX: Handles YYYY-MM-DD strings without timezone shift
         function parseDateLocal(input) {
             if(!input) return null;
-            
-            // If it's a number (Swift format), standard Date
             if(typeof input === 'number') return new Date((input + 978307200) * 1000);
-            
-            // If it's "2023-11-30", parsing as new Date() assumes UTC.
-            // We want to force it to be treated as local midnight.
             if(typeof input === 'string' && input.includes('-') && input.length === 10) {
                 const [y, m, d] = input.split('-').map(Number);
-                return new Date(y, m - 1, d); // Month is 0-indexed
+                return new Date(y, m - 1, d);
             }
-
-            // Fallback for full ISO strings with time
             return new Date(input); 
+        }
+
+        // --- SUGGESTION SYSTEM (NEW) ---
+        function renderSuggestions() {
+            // 1. Collect all unique Ships and Tags with counts
+            const shipCounts = {};
+            const tagCounts = {};
+
+            fics.forEach(f => {
+                (f.ships || []).forEach(s => shipCounts[s] = (shipCounts[s] || 0) + 1);
+                (f.tags || []).forEach(t => tagCounts[t] = (tagCounts[t] || 0) + 1);
+            });
+
+            // 2. Sort and take top 20
+            const sortedShips = Object.keys(shipCounts).sort((a,b) => shipCounts[b] - shipCounts[a]).slice(0, 20);
+            const sortedTags = Object.keys(tagCounts).sort((a,b) => tagCounts[b] - tagCounts[a]).slice(0, 20);
+
+            // 3. Render Ships Chips
+            const shipContainer = document.getElementById('suggestShips');
+            shipContainer.innerHTML = '';
+            sortedShips.forEach(s => {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.innerText = s;
+                chip.onclick = () => addToInput('inpShips', s);
+                shipContainer.appendChild(chip);
+            });
+
+            // 4. Render Tags Chips
+            const tagContainer = document.getElementById('suggestTags');
+            tagContainer.innerHTML = '';
+            sortedTags.forEach(t => {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.innerText = t;
+                chip.onclick = () => addToInput('inpTags', t);
+                tagContainer.appendChild(chip);
+            });
+        }
+
+        function addToInput(id, value) {
+            const input = document.getElementById(id);
+            const current = input.value.trim();
+            if (current.length === 0) {
+                input.value = value;
+            } else {
+                // Prevent duplicate addition if already at end
+                if(!current.includes(value)) {
+                    input.value = current + ', ' + value;
+                }
+            }
         }
 
         // --- FORMS ---
@@ -438,8 +504,11 @@
             document.getElementById('ficForm').reset();
             document.getElementById('editId').value = '';
             document.getElementById('modalTitle').innerText = 'Add Fic';
-            document.getElementById('btnDelete').classList.add('hidden'); // Hide delete for new
+            document.getElementById('btnDelete').classList.add('hidden');
+            
             toggleDateVisibility(); 
+            renderSuggestions(); // Load suggestions
+            
             document.getElementById('ficModal').classList.remove('hidden');
         }
 
@@ -462,10 +531,8 @@
             document.getElementById('inpShips').value = (f.ships||[]).join(', ');
             document.getElementById('inpTags').value = (f.tags||[]).join(', ');
 
-            // Set Date Value safely
             const dateInput = document.getElementById('inpDateFinished');
             if(f.dateFinished) {
-                // If it's already YYYY-MM-DD
                 if(typeof f.dateFinished === 'string' && f.dateFinished.length === 10) {
                     dateInput.value = f.dateFinished;
                 } else {
@@ -476,8 +543,11 @@
                 dateInput.value = '';
             }
             
-            document.getElementById('btnDelete').classList.remove('hidden'); // Show delete for edit
+            document.getElementById('btnDelete').classList.remove('hidden');
+            
             toggleDateVisibility(); 
+            renderSuggestions(); // Load suggestions
+            
             document.getElementById('ficModal').classList.remove('hidden');
         }
 
@@ -496,10 +566,9 @@
             e.preventDefault();
             const id = document.getElementById('editId').value;
             const readStatus = document.getElementById('inpReadStatus').value;
-            const dateVal = document.getElementById('inpDateFinished').value; // YYYY-MM-DD
+            const dateVal = document.getElementById('inpDateFinished').value;
 
             let dateFinished = null;
-            // Store date as simple YYYY-MM-DD string to avoid timezone headaches completely
             if (readStatus === 'read' && dateVal) {
                 dateFinished = dateVal;
             }
