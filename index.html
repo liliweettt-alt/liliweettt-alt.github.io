@@ -202,7 +202,15 @@
                     <input type="number" id="inpChapters" placeholder="Chapters" class="input-field">
                 </div>
 
-                <textarea id="inpSummary" placeholder="Summary" rows="3" class="input-field"></textarea>
+                <div>
+                    <label class="text-xs text-gray-400 ml-1">Summary (Official)</label>
+                    <textarea id="inpSummary" placeholder="Paste author summary here..." rows="3" class="input-field"></textarea>
+                </div>
+
+                <div>
+                    <label class="text-xs text-blue-300 ml-1">My Notes (Private)</label>
+                    <textarea id="inpNotes" placeholder="Personal review, reading notes, etc..." rows="2" class="input-field border-blue-900 bg-gray-750"></textarea>
+                </div>
                 
                 <div>
                     <div class="flex justify-between items-center mb-1">
@@ -323,7 +331,7 @@
                     : '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-900 text-yellow-200 border border-yellow-700">WIP</span>';
 
                 const item = document.createElement('div');
-                item.className = 'bg-gray-800 p-4 rounded-xl flex justify-between cursor-pointer hover:bg-gray-750';
+                item.className = 'bg-gray-800 p-4 rounded-xl flex justify-between cursor-pointer hover:bg-gray-750 relative';
                 item.onclick = () => openEditModal(f.id);
                 item.innerHTML = `
                     <div class="flex-1 min-w-0 pr-2">
@@ -333,11 +341,17 @@
                             ${statusBadge}
                             ${isRead ? '<i class="fa-solid fa-circle-check text-green-500 text-sm"></i>' : ''}
                             ${hasCover ? '<i class="fa-solid fa-image text-yellow-600 text-sm"></i>' : ''}
+                            ${f.notes ? '<i class="fa-solid fa-note-sticky text-blue-400 text-sm" title="Has Notes"></i>' : ''}
                         </div>
                     </div>
-                    <div class="text-right pl-2 text-xs text-gray-500 flex flex-col justify-center min-w-[60px]">
-                        <span>${(f.wordcount||0).toLocaleString()}w</span>
-                        ${f.chapters ? `<span>${f.chapters} ch</span>` : ''}
+                    
+                    <div class="flex flex-col items-end justify-between pl-2 min-w-[60px]">
+                        ${f.originalLink ? `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-blue-400 hover:text-blue-300 p-1 mb-1 bg-gray-700 rounded-lg w-8 h-8 flex items-center justify-center"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : '<div class="h-8"></div>'}
+                        
+                        <div class="text-xs text-gray-500 text-right">
+                            <span class="block">${(f.wordcount||0).toLocaleString()}w</span>
+                            ${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}
+                        </div>
                     </div>
                 `;
                 list.appendChild(item);
@@ -440,22 +454,17 @@
             return new Date(input); 
         }
 
-        // --- UPDATED SUGGESTIONS: ALL ITEMS + A-Z SORT ---
+        // --- SUGGESTIONS (Alphabetical) ---
         function renderSuggestions() {
-            // Collect All Unique
             const shipSet = new Set();
             const tagSet = new Set();
-            
             fics.forEach(f => {
                 (f.ships || []).forEach(s => shipSet.add(s));
                 (f.tags || []).forEach(t => tagSet.add(t));
             });
-
-            // Convert to Array and Sort Alphabetically (A-Z)
             const sortedShips = Array.from(shipSet).sort((a, b) => a.localeCompare(b));
             const sortedTags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
 
-            // Populate Dropdowns
             const fillSelect = (id, items) => {
                 const el = document.getElementById(id);
                 el.innerHTML = '<option value="">Select used...</option>';
@@ -466,7 +475,6 @@
                     el.appendChild(opt);
                 });
             };
-
             fillSelect('selShipsHelper', sortedShips);
             fillSelect('selTagsHelper', sortedTags);
         }
@@ -475,19 +483,11 @@
             const select = document.getElementById(selectId);
             const val = select.value;
             if(!val) return;
-            
             const input = document.getElementById(inputId);
             const current = input.value.trim();
-            
-            if(current.length === 0) {
-                input.value = val;
-            } else {
-                // Check dupes roughly
-                if(!current.includes(val)) {
-                    input.value = current + ', ' + val;
-                }
-            }
-            select.value = ""; // Reset dropdown
+            if(current.length === 0) { input.value = val; } 
+            else if(!current.includes(val)) { input.value = current + ', ' + val; }
+            select.value = ""; 
         }
 
         // --- FORMS ---
@@ -511,8 +511,7 @@
             document.getElementById('btnDelete').classList.add('hidden');
             
             toggleDateVisibility(); 
-            renderSuggestions(); // Init suggestions
-            
+            renderSuggestions(); 
             document.getElementById('ficModal').classList.remove('hidden');
         }
 
@@ -531,7 +530,11 @@
             document.getElementById('inpStatus').value = f.status || 'wip';
             document.getElementById('inpWords').value = f.wordcount || '';
             document.getElementById('inpChapters').value = f.chapters || '';
+            
+            // Populating Split Text Areas
             document.getElementById('inpSummary').value = f.summary || '';
+            document.getElementById('inpNotes').value = f.notes || '';
+            
             document.getElementById('inpShips').value = (f.ships||[]).join(', ');
             document.getElementById('inpTags').value = (f.tags||[]).join(', ');
 
@@ -548,10 +551,8 @@
             }
             
             document.getElementById('btnDelete').classList.remove('hidden');
-            
             toggleDateVisibility(); 
-            renderSuggestions(); // Init suggestions
-            
+            renderSuggestions(); 
             document.getElementById('ficModal').classList.remove('hidden');
         }
 
@@ -589,6 +590,7 @@
                 wordcount: parseInt(document.getElementById('inpWords').value) || 0,
                 chapters: parseInt(document.getElementById('inpChapters').value) || 0,
                 summary: document.getElementById('inpSummary').value,
+                notes: document.getElementById('inpNotes').value, // NEW: Save Notes
                 ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s),
                 tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
                 dateFinished: dateFinished
