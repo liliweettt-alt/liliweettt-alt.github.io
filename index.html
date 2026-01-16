@@ -440,18 +440,20 @@
             return new Date(input); 
         }
 
-        // --- NEW: DROPDOWN SUGGESTIONS ---
+        // --- UPDATED SUGGESTIONS: ALL ITEMS + A-Z SORT ---
         function renderSuggestions() {
-            // Calculate Top Used
-            const shipCounts = {};
-            const tagCounts = {};
+            // Collect All Unique
+            const shipSet = new Set();
+            const tagSet = new Set();
+            
             fics.forEach(f => {
-                (f.ships || []).forEach(s => shipCounts[s] = (shipCounts[s] || 0) + 1);
-                (f.tags || []).forEach(t => tagCounts[t] = (tagCounts[t] || 0) + 1);
+                (f.ships || []).forEach(s => shipSet.add(s));
+                (f.tags || []).forEach(t => tagSet.add(t));
             });
 
-            const sortedShips = Object.keys(shipCounts).sort((a,b) => shipCounts[b] - shipCounts[a]).slice(0, 50);
-            const sortedTags = Object.keys(tagCounts).sort((a,b) => tagCounts[b] - tagCounts[a]).slice(0, 50);
+            // Convert to Array and Sort Alphabetically (A-Z)
+            const sortedShips = Array.from(shipSet).sort((a, b) => a.localeCompare(b));
+            const sortedTags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
 
             // Populate Dropdowns
             const fillSelect = (id, items) => {
