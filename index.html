@@ -142,6 +142,11 @@
                         <option value="medium">Medium (10-50)</option>
                         <option value="long">Long (>50)</option>
                     </select>
+                    <select id="filterCover" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="all">Cover: All</option>
+                        <option value="yes">Has Cover</option>
+                        <option value="not">No Cover</option>
+                    </select>
                     <select id="filterCompletion" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
                         <option value="all">Status: All</option>
                         <option value="complete">Complete</option>
@@ -197,6 +202,10 @@
                     <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Ships</h3>
                     <div id="list-top-ships" class="space-y-3"></div>
                 </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Tags</h3>
+                    <div id="list-top-tags" class="space-y-3"></div>
+                </div>
             </div>
         </div>
 
@@ -251,12 +260,12 @@
                 <div class="p-4 bg-slate-700/30 rounded-xl space-y-3 border border-slate-700">
                     <div class="grid grid-cols-2 gap-3">
                         <select id="inpReadStatus" class="input-field custom-select bg-slate-800" onchange="toggleDateVisibility()">
-                            <option value="unread">Status: Unread</option>
-                            <option value="read">Status: Read</option>
+                            <option value="unread">Unread</option>
+                            <option value="read">Read</option>
                         </select>
                          <select id="inpStatus" class="input-field custom-select bg-slate-800">
-                            <option value="wip">Author: WIP</option>
-                            <option value="complete">Author: Complete</option>
+                            <option value="wip">WIP</option>
+                            <option value="complete">Complete</option>
                         </select>
                     </div>
 
@@ -378,6 +387,8 @@
             const statusFilter = document.getElementById('filterStatus').value;
             const chapterFilter = document.getElementById('filterChapters').value;
             const completionFilter = document.getElementById('filterCompletion').value;
+            // NEW: Cover Filter Logic
+            const coverFilter = document.getElementById('filterCover').value;
             const sortMode = document.getElementById('sortOption').value;
 
             let filtered = fics.filter(f => {
@@ -390,6 +401,13 @@
 
                 if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
                 
+                // Cover Filter Implementation
+                if (coverFilter !== 'all') {
+                    const hasCover = (f.coverStatus === 'yes');
+                    if (coverFilter === 'yes' && !hasCover) return false;
+                    if (coverFilter === 'not' && hasCover) return false;
+                }
+
                 if (search) {
                     const txt = `${f.title} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase();
                     return txt.includes(search);
@@ -413,6 +431,11 @@
                     ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' 
                     : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
 
+                // Cover Badge Design (NEW)
+                const coverBadge = hasCover 
+                    ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' 
+                    : '';
+
                 const item = document.createElement('div');
                 item.className = 'fic-card p-4 rounded-xl flex justify-between cursor-pointer relative group';
                 item.onclick = () => openEditModal(f.id);
@@ -428,8 +451,8 @@
                         
                         <div class="flex flex-wrap items-center gap-2">
                             ${statusBadge}
+                            ${coverBadge}
                             ${isRead ? '<span class="text-emerald-400 text-xs flex items-center gap-1"><i class="fa-solid fa-check"></i> Read</span>' : ''}
-                            ${hasCover ? '<span class="text-yellow-500 text-xs"><i class="fa-solid fa-image" title="Cover Made"></i></span>' : ''}
                             ${f.notes ? '<span class="text-indigo-400 text-xs"><i class="fa-solid fa-note-sticky" title="Has Notes"></i></span>' : ''}
                         </div>
                     </div>
@@ -476,6 +499,7 @@
 
             renderTopList('list-top-fandoms', getTop(readFics, f => f.fandom));
             renderTopList('list-top-ships', getTop(readFics, f => f.ships));
+            renderTopList('list-top-tags', getTop(readFics, f => f.tags)); // RESTORED
         }
 
         function renderTopList(id, data) {
