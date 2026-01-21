@@ -32,7 +32,7 @@
 
         /* GLASS NAVIGATION */
         .glass-nav {
-            background-color: rgba(15, 23, 42, 0.85);
+            background-color: rgba(15, 23, 42, 0.90);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-top: 1px solid rgba(255,255,255,0.05);
@@ -64,7 +64,7 @@
             box-shadow: 0 0 0 3px var(--accent-glow);
         }
 
-        /* CUSTOM SELECT ARROW */
+        /* CUSTOM SELECT */
         .custom-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.75rem center;
@@ -86,26 +86,43 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+        
+        /* Chip for tags */
+        .tag-chip {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #94a3b8;
+        }
+
+        /* ANIMATIONS */
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="antialiased selection:bg-indigo-500 selection:text-white">
 
-    <nav class="fixed bottom-0 w-full glass-nav flex justify-around py-4 z-50 safe-area-pb shadow-[0_-5px_15px_rgba(0,0,0,0.3)]">
+    <nav class="fixed bottom-0 w-full glass-nav flex justify-around py-3 z-50 safe-area-pb shadow-[0_-5px_15px_rgba(0,0,0,0.3)]">
         <button onclick="switchTab('library')" class="nav-btn text-center text-indigo-400 transition-colors" id="btn-library">
-            <i class="fa-solid fa-book-open text-xl mb-1"></i>
-            <span class="block text-[10px] font-heading tracking-wide">Library</span>
+            <i class="fa-solid fa-book-open text-lg mb-0.5"></i>
+            <span class="block text-[9px] font-heading tracking-wide">Library</span>
+        </button>
+        <button onclick="switchTab('discovery')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-discovery">
+            <i class="fa-solid fa-compass text-lg mb-0.5"></i>
+            <span class="block text-[9px] font-heading tracking-wide">Pick</span>
         </button>
         <button onclick="switchTab('dashboard')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-dashboard">
-            <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
-            <span class="block text-[10px] font-heading tracking-wide">Stats</span>
+            <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
+            <span class="block text-[9px] font-heading tracking-wide">Stats</span>
         </button>
         <button onclick="switchTab('report')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-report">
-            <i class="fa-solid fa-calendar-check text-xl mb-1"></i>
-            <span class="block text-[10px] font-heading tracking-wide">History</span>
+            <i class="fa-solid fa-calendar-check text-lg mb-0.5"></i>
+            <span class="block text-[9px] font-heading tracking-wide">History</span>
         </button>
         <button onclick="switchTab('settings')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-settings">
-            <i class="fa-solid fa-sliders text-xl mb-1"></i>
-            <span class="block text-[10px] font-heading tracking-wide">Data</span>
+            <i class="fa-solid fa-sliders text-lg mb-0.5"></i>
+            <span class="block text-[9px] font-heading tracking-wide">Data</span>
         </button>
     </nav>
 
@@ -161,6 +178,20 @@
             </div>
 
             <div id="ficList" class="space-y-3"></div>
+        </div>
+
+        <div id="tab-discovery" class="tab-content hidden animate-fade-in">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Next Read</h1>
+                    <p class="text-slate-400 text-xs">Unread gems from your list</p>
+                </div>
+                <button onclick="renderDiscovery()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-shuffle"></i> Spin Again
+                </button>
+            </div>
+            
+            <div id="discoveryList" class="space-y-6"></div>
         </div>
 
         <div id="tab-dashboard" class="tab-content hidden animate-fade-in">
@@ -260,8 +291,8 @@
                 <div class="p-4 bg-slate-700/30 rounded-xl space-y-3 border border-slate-700">
                     <div class="grid grid-cols-2 gap-3">
                         <select id="inpReadStatus" class="input-field custom-select bg-slate-800" onchange="toggleDateVisibility()">
-                            <option value="unread">Unread</option>
-                            <option value="read">Read</option>
+                            <option value="unread">Status: Unread</option>
+                            <option value="read">Status: Read</option>
                         </select>
                          <select id="inpStatus" class="input-field custom-select bg-slate-800">
                             <option value="wip">WIP</option>
@@ -275,8 +306,8 @@
                     </div>
                     
                     <select id="inpCoverStatus" class="input-field custom-select bg-slate-800">
-                        <option value="not">No Cover Image</option>
-                        <option value="yes">Cover Image Made</option>
+                        <option value="not">No Cover</option>
+                        <option value="yes">Cover Made</option>
                     </select>
                 </div>
 
@@ -342,7 +373,6 @@
             const stored = localStorage.getItem('ficLibData');
             if (stored) {
                 fics = JSON.parse(stored);
-                // Data Cleanup
                 fics.forEach(f => {
                     if(f.cover_status) { f.coverStatus = f.cover_status; delete f.cover_status; }
                     if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
@@ -369,6 +399,7 @@
             
             if(tab === 'dashboard') updateDashboard();
             if(tab === 'report') updateReport();
+            if(tab === 'discovery') renderDiscovery(); // Trigger Shuffle
             
             window.scrollTo(0,0);
         }
@@ -378,7 +409,7 @@
             renderLibrary();
         }
 
-        // --- RENDER LIBRARY (Updated Design) ---
+        // --- RENDER LIBRARY ---
         function renderLibrary() {
             const list = document.getElementById('ficList');
             list.innerHTML = '';
@@ -387,7 +418,6 @@
             const statusFilter = document.getElementById('filterStatus').value;
             const chapterFilter = document.getElementById('filterChapters').value;
             const completionFilter = document.getElementById('filterCompletion').value;
-            // NEW: Cover Filter Logic
             const coverFilter = document.getElementById('filterCover').value;
             const sortMode = document.getElementById('sortOption').value;
 
@@ -400,8 +430,6 @@
                 if (chapterFilter === 'long' && chaps <= 50) return false;
 
                 if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
-                
-                // Cover Filter Implementation
                 if (coverFilter !== 'all') {
                     const hasCover = (f.coverStatus === 'yes');
                     if (coverFilter === 'yes' && !hasCover) return false;
@@ -418,7 +446,7 @@
             filtered.sort((a, b) => {
                 if (sortMode === 'az') return a.title.localeCompare(b.title);
                 if (sortMode === 'words') return (b.wordcount || 0) - (a.wordcount || 0);
-                return 0; // default Newest (by index order essentially)
+                return 0; 
             });
 
             filtered.forEach(f => {
@@ -426,12 +454,9 @@
                 const hasCover = f.coverStatus === 'yes';
                 const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
                 
-                // Badges Design
                 const statusBadge = isComplete 
                     ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' 
                     : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
-
-                // Cover Badge Design (NEW)
                 const coverBadge = hasCover 
                     ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' 
                     : '';
@@ -440,7 +465,6 @@
                 item.className = 'fic-card p-4 rounded-xl flex justify-between cursor-pointer relative group';
                 item.onclick = () => openEditModal(f.id);
                 
-                // Card HTML
                 item.innerHTML = `
                     <div class="flex-1 min-w-0 pr-3">
                         <div class="flex items-start justify-between">
@@ -448,7 +472,6 @@
                         </div>
                         <h3 class="font-bold text-lg text-white truncate leading-tight mt-1 mb-0.5">${f.title}</h3>
                         <p class="text-xs text-slate-400 mb-2 truncate">${f.author || 'Unknown Author'}</p>
-                        
                         <div class="flex flex-wrap items-center gap-2">
                             ${statusBadge}
                             ${coverBadge}
@@ -456,13 +479,11 @@
                             ${f.notes ? '<span class="text-indigo-400 text-xs"><i class="fa-solid fa-note-sticky" title="Has Notes"></i></span>' : ''}
                         </div>
                     </div>
-                    
                     <div class="flex flex-col items-end justify-between pl-2 min-w-[70px] border-l border-slate-700/50 my-1">
                         ${f.originalLink ? 
                             `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg transition-all"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` 
                             : '<div class="h-6"></div>'
                         }
-                        
                         <div class="text-[10px] text-slate-500 text-right font-mono mt-auto">
                             <span class="block">${(f.wordcount||0).toLocaleString()}w</span>
                             ${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}
@@ -470,6 +491,59 @@
                     </div>
                 `;
                 list.appendChild(item);
+            });
+        }
+
+        // --- DISCOVERY LOGIC (NEW) ---
+        function renderDiscovery() {
+            const container = document.getElementById('discoveryList');
+            const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
+            
+            if (unread.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read! Add more to use Discovery.</div>';
+                return;
+            }
+
+            // Shuffle and Pick 5
+            const shuffled = unread.sort(() => 0.5 - Math.random()).slice(0, 5);
+            
+            container.innerHTML = '';
+            shuffled.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
+                
+                // Tags HTML
+                const tagsHtml = (f.tags || []).slice(0, 5).map(t => `<span class="tag-chip">${t}</span>`).join('');
+                const shipsHtml = (f.ships || []).map(s => `<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('');
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">${f.fandom}</span>
+                            <h3 class="text-xl font-bold text-white leading-tight">${f.title}</h3>
+                            <p class="text-sm text-slate-400">by ${f.author}</p>
+                        </div>
+                        ${f.originalLink ? 
+                            `<button onclick="window.open('${f.originalLink}', '_blank')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Read Now</button>` 
+                            : ''
+                        }
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        ${shipsHtml}
+                        ${tagsHtml}
+                    </div>
+
+                    <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">
+                        ${f.summary || 'No summary provided.'}
+                    </div>
+                    
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-700/50">
+                        <span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words</span>
+                        <button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">View Details</button>
+                    </div>
+                `;
+                container.appendChild(card);
             });
         }
 
@@ -481,7 +555,6 @@
             document.getElementById('stat-read-count').innerText = `Read: ${readFics.length}`;
             document.getElementById('stat-unread-count').innerText = `Unread: ${fics.length - readFics.length}`;
             
-            // Animate Progress Bar
             setTimeout(() => {
                 const pct = fics.length ? (readFics.length / fics.length) * 100 : 0;
                 document.getElementById('stat-progress-bar').style.width = `${pct}%`;
@@ -499,7 +572,7 @@
 
             renderTopList('list-top-fandoms', getTop(readFics, f => f.fandom));
             renderTopList('list-top-ships', getTop(readFics, f => f.ships));
-            renderTopList('list-top-tags', getTop(readFics, f => f.tags)); // RESTORED
+            renderTopList('list-top-tags', getTop(readFics, f => f.tags));
         }
 
         function renderTopList(id, data) {
