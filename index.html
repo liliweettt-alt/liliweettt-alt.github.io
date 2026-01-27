@@ -87,7 +87,6 @@
             letter-spacing: 0.05em;
         }
         
-        /* Chip for tags */
         .tag-chip {
             font-size: 0.7rem;
             background: rgba(255,255,255,0.05);
@@ -96,7 +95,6 @@
             color: #94a3b8;
         }
 
-        /* ANIMATIONS */
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -153,6 +151,14 @@
                         <option value="read">Read</option>
                         <option value="unread">Unread</option>
                     </select>
+
+                    <select id="filterShips" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="all">Ship: All</option>
+                        </select>
+                    <select id="filterTags" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="all">Tag: All</option>
+                         </select>
+
                     <select id="filterChapters" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
                         <option value="all">Length: Any</option>
                         <option value="short">Short (<10)</option>
@@ -190,7 +196,6 @@
                     <i class="fa-solid fa-shuffle"></i> Spin Again
                 </button>
             </div>
-            
             <div id="discoveryList" class="space-y-6"></div>
         </div>
 
@@ -327,7 +332,6 @@
                         <label class="text-xs font-bold text-slate-400 ml-1 uppercase tracking-wide">Summary</label>
                         <textarea id="inpSummary" placeholder="Paste official summary..." rows="3" class="input-field text-sm leading-relaxed text-slate-300"></textarea>
                     </div>
-
                     <div>
                         <label class="text-xs font-bold text-indigo-400 ml-1 uppercase tracking-wide"><i class="fa-regular fa-note-sticky mr-1"></i> My Notes</label>
                         <textarea id="inpNotes" placeholder="Personal thoughts, rating, to-read notes..." rows="2" class="input-field border-indigo-500/30 bg-indigo-500/5 text-sm"></textarea>
@@ -388,7 +392,6 @@
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             
-            // Update Icons Colors
             document.querySelectorAll('.nav-btn').forEach(el => {
                 el.classList.remove('text-indigo-400');
                 el.classList.add('text-slate-500');
@@ -399,18 +402,51 @@
             
             if(tab === 'dashboard') updateDashboard();
             if(tab === 'report') updateReport();
-            if(tab === 'discovery') renderDiscovery(); // Trigger Shuffle
+            if(tab === 'discovery') renderDiscovery();
             
             window.scrollTo(0,0);
         }
 
         function saveData() {
             localStorage.setItem('ficLibData', JSON.stringify(fics));
-            renderLibrary();
+            renderLibrary(); // Re-render triggers populateFilterDropdowns
+        }
+
+        // --- DYNAMIC FILTERS LOGIC (NEW) ---
+        function populateFilterDropdowns() {
+            const shipSet = new Set();
+            const tagSet = new Set();
+            
+            fics.forEach(f => {
+                (f.ships || []).forEach(s => shipSet.add(s.trim()));
+                (f.tags || []).forEach(t => tagSet.add(t.trim()));
+            });
+
+            // Helper to fill select
+            const fill = (id, items, label) => {
+                const select = document.getElementById(id);
+                const currentVal = select.value; // Remember selection
+                select.innerHTML = `<option value="all">${label}</option>`;
+                items.sort((a,b) => a.localeCompare(b)).forEach(i => {
+                    if(!i) return;
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.innerText = i;
+                    select.appendChild(opt);
+                });
+                // Restore selection if it still exists, else default to all
+                if(items.includes(currentVal)) select.value = currentVal;
+            };
+
+            fill('filterShips', Array.from(shipSet), 'Ship: All');
+            fill('filterTags', Array.from(tagSet), 'Tag: All');
         }
 
         // --- RENDER LIBRARY ---
         function renderLibrary() {
+            // Update Dynamic Dropdowns First
+            populateFilterDropdowns();
+
             const list = document.getElementById('ficList');
             list.innerHTML = '';
             
@@ -419,6 +455,10 @@
             const chapterFilter = document.getElementById('filterChapters').value;
             const completionFilter = document.getElementById('filterCompletion').value;
             const coverFilter = document.getElementById('filterCover').value;
+            // NEW FILTER VALUES
+            const shipFilter = document.getElementById('filterShips').value;
+            const tagFilter = document.getElementById('filterTags').value;
+            
             const sortMode = document.getElementById('sortOption').value;
 
             let filtered = fics.filter(f => {
@@ -434,6 +474,14 @@
                     const hasCover = (f.coverStatus === 'yes');
                     if (coverFilter === 'yes' && !hasCover) return false;
                     if (coverFilter === 'not' && hasCover) return false;
+                }
+
+                // NEW: Logic for Ship & Tag Filter
+                if (shipFilter !== 'all') {
+                    if (!f.ships || !f.ships.includes(shipFilter)) return false;
+                }
+                if (tagFilter !== 'all') {
+                    if (!f.tags || !f.tags.includes(tagFilter)) return false;
                 }
 
                 if (search) {
@@ -494,7 +542,7 @@
             });
         }
 
-        // --- DISCOVERY LOGIC (NEW) ---
+        // --- DISCOVERY ---
         function renderDiscovery() {
             const container = document.getElementById('discoveryList');
             const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
@@ -503,16 +551,11 @@
                 container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read! Add more to use Discovery.</div>';
                 return;
             }
-
-            // Shuffle and Pick 5
             const shuffled = unread.sort(() => 0.5 - Math.random()).slice(0, 5);
-            
             container.innerHTML = '';
             shuffled.forEach(f => {
                 const card = document.createElement('div');
                 card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
-                
-                // Tags HTML
                 const tagsHtml = (f.tags || []).slice(0, 5).map(t => `<span class="tag-chip">${t}</span>`).join('');
                 const shipsHtml = (f.ships || []).map(s => `<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('');
 
@@ -528,16 +571,10 @@
                             : ''
                         }
                     </div>
-                    
-                    <div class="flex flex-wrap gap-2 mb-3">
-                        ${shipsHtml}
-                        ${tagsHtml}
-                    </div>
-
+                    <div class="flex flex-wrap gap-2 mb-3">${shipsHtml}${tagsHtml}</div>
                     <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">
                         ${f.summary || 'No summary provided.'}
                     </div>
-                    
                     <div class="flex justify-between items-center pt-2 border-t border-slate-700/50">
                         <span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words</span>
                         <button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">View Details</button>
