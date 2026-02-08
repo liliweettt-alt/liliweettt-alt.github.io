@@ -3,28 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker</title>
+    <title>FicLib Tracker v15</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* BASE SETTINGS */
         :root {
-            --bg-body: #0f172a; /* Slate 900 */
-            --bg-card: #1e293b; /* Slate 800 */
-            --bg-input: #334155; /* Slate 700 */
-            --accent: #818cf8; /* Indigo 400 */
-            --accent-glow: rgba(129, 140, 248, 0.2);
+            --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #334155;
+            --accent: #818cf8; --accent-glow: rgba(129, 140, 248, 0.2);
         }
-
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: #f1f5f9; }
         h1, h2, h3, .font-heading { font-family: 'Poppins', sans-serif; }
-        
         .safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -37,6 +31,8 @@
             -webkit-backdrop-filter: blur(12px);
             border-top: 1px solid rgba(255,255,255,0.05);
         }
+        .nav-btn.active { color: #818cf8; }
+        .nav-btn { color: #64748b; }
 
         /* CARDS */
         .fic-card {
@@ -53,65 +49,26 @@
             position: relative;
         }
         .series-folder::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            right: 10px;
-            left: 10px;
-            height: 4px;
-            background: rgba(129, 140, 248, 0.2);
-            border-radius: 4px 4px 0 0;
+            content: ''; position: absolute; top: -4px; right: 10px; left: 10px; height: 4px;
+            background: rgba(129, 140, 248, 0.2); border-radius: 4px 4px 0 0;
         }
 
         /* INPUTS */
         .input-field { 
-            width: 100%; 
-            background-color: var(--bg-input); 
-            padding: 0.8rem; 
-            border-radius: 0.75rem; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            color: white; 
-            font-size: 0.9rem; 
-            font-family: 'Inter', sans-serif;
-            transition: all 0.2s;
+            width: 100%; background-color: var(--bg-input); padding: 0.8rem; border-radius: 0.75rem; 
+            border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 0.9rem; 
+            font-family: 'Inter', sans-serif; transition: all 0.2s;
         }
-        .input-field:focus { 
-            outline: none; 
-            border-color: var(--accent); 
-            box-shadow: 0 0 0 3px var(--accent-glow);
-        }
+        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 
-        /* CUSTOM SELECT */
         .custom-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.75rem center;
-            background-repeat: no-repeat;
-            background-size: 1.2em 1.2em;
-            padding-right: 2.5rem;
-            -webkit-appearance: none;
-            appearance: none;
+            background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.2em 1.2em;
+            padding-right: 2.5rem; -webkit-appearance: none; appearance: none;
         }
 
-        /* BADGES */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.15rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        .tag-chip {
-            font-size: 0.7rem;
-            background: rgba(255,255,255,0.05);
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: #94a3b8;
-        }
-
+        .badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .tag-chip { font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8; }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -119,23 +76,23 @@
 <body class="antialiased selection:bg-indigo-500 selection:text-white">
 
     <nav class="fixed bottom-0 w-full glass-nav flex justify-between px-6 py-3 z-50 safe-area-pb shadow-[0_-5px_15px_rgba(0,0,0,0.3)]">
-        <button onclick="switchTab('library')" class="nav-btn text-center text-indigo-400 transition-colors" id="btn-library">
+        <button onclick="switchTab('library')" class="nav-btn text-center transition-colors active" id="btn-library">
             <i class="fa-solid fa-book-open text-lg mb-0.5"></i>
             <span class="block text-[9px] font-heading tracking-wide">Library</span>
         </button>
-        <button onclick="switchTab('discovery')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-discovery">
+        <button onclick="switchTab('discovery')" class="nav-btn text-center transition-colors" id="btn-discovery">
             <i class="fa-solid fa-compass text-lg mb-0.5"></i>
             <span class="block text-[9px] font-heading tracking-wide">Pick</span>
         </button>
-        <button onclick="switchTab('dashboard')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-dashboard">
+        <button onclick="switchTab('dashboard')" class="nav-btn text-center transition-colors" id="btn-dashboard">
             <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
             <span class="block text-[9px] font-heading tracking-wide">Stats</span>
         </button>
-        <button onclick="switchTab('report')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-report">
+        <button onclick="switchTab('report')" class="nav-btn text-center transition-colors" id="btn-report">
             <i class="fa-solid fa-calendar-check text-lg mb-0.5"></i>
             <span class="block text-[9px] font-heading tracking-wide">History</span>
         </button>
-        <button onclick="switchTab('settings')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-settings">
+        <button onclick="switchTab('settings')" class="nav-btn text-center transition-colors" id="btn-settings">
             <i class="fa-solid fa-sliders text-lg mb-0.5"></i>
             <span class="block text-[9px] font-heading tracking-wide">Data</span>
         </button>
@@ -157,38 +114,20 @@
             <div class="space-y-3 mb-6">
                 <div class="relative">
                     <i class="fa-solid fa-search absolute left-3 top-3.5 text-slate-500 text-sm"></i>
-                    <input type="text" id="searchInput" placeholder="Search title, series, tags..." 
-                           class="input-field pl-9"
-                           onkeyup="renderLibrary()">
+                    <input type="text" id="searchInput" placeholder="Search title, series, tags..." class="input-field pl-9" onkeyup="renderLibrary()">
                 </div>
                 
                 <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                     <select id="filterStatus" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
-                        <option value="all">Reading: All</option>
-                        <option value="read">Read</option>
-                        <option value="unread">Unread</option>
+                        <option value="all">Reading: All</option><option value="read">Read</option><option value="unread">Unread</option>
                     </select>
-                    <select id="filterShips" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
-                        <option value="all">Ship: All</option>
-                    </select>
-                    <select id="filterTags" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
-                        <option value="all">Tag: All</option>
-                    </select>
+                    <select id="filterShips" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Ship: All</option></select>
+                    <select id="filterTags" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Tag: All</option></select>
                     <select id="filterChapters" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
-                        <option value="all">Length: Any</option>
-                        <option value="short">Short (<10)</option>
-                        <option value="medium">Medium (10-50)</option>
-                        <option value="long">Long (>50)</option>
-                    </select>
-                    <select id="filterCover" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
-                        <option value="all">Cover: All</option>
-                        <option value="yes">Has Cover</option>
-                        <option value="not">No Cover</option>
+                        <option value="all">Length: Any</option><option value="short">Short (<10)</option><option value="medium">Medium (10-50)</option><option value="long">Long (>50)</option>
                     </select>
                     <select id="sortOption" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
-                        <option value="date">Newest</option>
-                        <option value="az">A-Z</option>
-                        <option value="words">Word Count</option>
+                        <option value="date">Newest</option><option value="az">A-Z</option><option value="words">Word Count</option>
                     </select>
                 </div>
             </div>
@@ -198,50 +137,68 @@
 
         <div id="tab-discovery" class="tab-content hidden animate-fade-in">
             <div class="flex justify-between items-end mb-6">
-                <div>
-                    <h1 class="text-2xl font-bold text-white">Next Read</h1>
-                    <p class="text-slate-400 text-xs">Unread gems from your list</p>
-                </div>
-                <button onclick="renderDiscovery()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2">
-                    <i class="fa-solid fa-shuffle"></i> Spin Again
-                </button>
+                <div><h1 class="text-2xl font-bold text-white">Next Read</h1><p class="text-slate-400 text-xs">Unread gems</p></div>
+                <button onclick="renderDiscovery()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 px-3 py-1.5 rounded-lg flex items-center gap-2"><i class="fa-solid fa-shuffle"></i> Spin</button>
             </div>
             <div id="discoveryList" class="space-y-6"></div>
         </div>
 
         <div id="tab-dashboard" class="tab-content hidden animate-fade-in">
-            <h1 class="text-2xl font-bold mb-6">Your Stats</h1>
+            <h1 class="text-2xl font-bold mb-6">Global Stats</h1>
             
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center shadow-sm">
-                    <div class="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <p class="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Words Read</p>
-                    <p class="text-xl font-bold text-white mt-1" id="stat-words">0</p>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
+                    <div class="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400"><i class="fa-solid fa-book-open"></i></div>
+                    <p class="text-slate-400 text-[10px] uppercase font-bold">Total Words Read</p><p class="text-xl font-bold text-white mt-1" id="stat-words">0</p>
                 </div>
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center shadow-sm">
-                    <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-purple-400">
-                        <i class="fa-solid fa-layer-group"></i>
-                    </div>
-                    <p class="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Total Fics</p>
-                    <p class="text-xl font-bold text-white mt-1" id="stat-total">0</p>
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
+                    <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-purple-400"><i class="fa-solid fa-layer-group"></i></div>
+                    <p class="text-slate-400 text-[10px] uppercase font-bold">Total Fics in List</p><p class="text-xl font-bold text-white mt-1" id="stat-total">0</p>
                 </div>
             </div>
 
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wide border-b border-slate-700 pb-2">Yearly Progress</h3>
-                <div id="yearly-stats-container"></div>
+                <div class="flex justify-between text-xs text-slate-400 mb-3 font-semibold">
+                    <span id="stat-read-count">Read: 0</span>
+                    <span id="stat-unread-count">Unread: 0</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner">
+                    <div id="stat-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-white" style="width: 0%">0%</div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-white">Yearly Breakdown</h3>
+                    <select id="yearSelector" class="bg-slate-800 border border-slate-700 text-indigo-400 text-xs rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="renderYearlyStats()">
+                        </select>
+                </div>
+                
+                <div id="yearStatsContainer" class="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl flex justify-around items-center">
+                    <div class="text-center">
+                        <p class="text-xs text-slate-500 uppercase">Words</p>
+                        <p class="text-xl font-bold text-white" id="year-stat-words">0</p>
+                    </div>
+                    <div class="h-10 w-px bg-slate-700"></div>
+                    <div class="text-center">
+                        <p class="text-xs text-slate-500 uppercase">Fics Finished</p>
+                        <p class="text-xl font-bold text-white" id="year-stat-count">0</p>
+                    </div>
+                </div>
             </div>
 
             <div class="space-y-6">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Fandoms</h3>
-                    <div id="list-top-fandoms" class="space-y-3"></div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms</h3>
+                    <div class="h-48 relative"><canvas id="chartFandoms"></canvas></div>
                 </div>
-                <div>
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Ships</h3>
-                    <div id="list-top-ships" class="space-y-3"></div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships</h3>
+                    <div class="h-48 relative"><canvas id="chartShips"></canvas></div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags</h3>
+                    <div class="h-48 relative"><canvas id="chartTags"></canvas></div>
                 </div>
             </div>
         </div>
@@ -254,21 +211,9 @@
         <div id="tab-settings" class="tab-content hidden animate-fade-in">
             <h1 class="text-2xl font-bold mb-6">Data Management</h1>
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-6">
-                <div>
-                    <h3 class="font-bold mb-3 text-sm text-indigo-300">Import Library</h3>
-                    <input type="file" id="fileInput" accept=".json" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"/>
-                </div>
-                <div>
-                    <h3 class="font-bold mb-3 text-sm text-indigo-300">Export Backup</h3>
-                    <button onclick="exportData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-download"></i> Download JSON
-                    </button>
-                </div>
-                <div class="pt-6 border-t border-slate-700">
-                    <button onclick="clearData()" class="w-full text-red-400 hover:text-red-300 text-sm font-semibold flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-trash"></i> Delete All Data
-                    </button>
-                </div>
+                <div><h3 class="font-bold mb-3 text-sm text-indigo-300">Import Library</h3><input type="file" id="fileInput" accept=".json" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"/></div>
+                <div><h3 class="font-bold mb-3 text-sm text-indigo-300">Export Backup</h3><button onclick="exportData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"><i class="fa-solid fa-download"></i> Download JSON</button></div>
+                <div class="pt-6 border-t border-slate-700"><button onclick="clearData()" class="w-full text-red-400 hover:text-red-300 text-sm font-semibold flex items-center justify-center gap-2"><i class="fa-solid fa-trash"></i> Delete All Data</button></div>
             </div>
         </div>
     </main>
@@ -279,102 +224,37 @@
                 <h2 id="modalTitle" class="text-xl font-bold font-heading text-white">Add Fic</h2>
                 <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 hover:bg-slate-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
             <form id="ficForm" class="space-y-4 pb-20">
                 <input type="hidden" id="editId">
                 <input type="text" id="inpTitle" placeholder="Fic Title" class="input-field text-lg font-bold placeholder-slate-500" required>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <input type="text" id="inpAuthor" placeholder="Author" class="input-field">
-                    <input type="text" id="inpFandom" placeholder="Fandom" class="input-field">
-                </div>
-
+                <div class="grid grid-cols-2 gap-3"><input type="text" id="inpAuthor" placeholder="Author" class="input-field"><input type="text" id="inpFandom" placeholder="Fandom" class="input-field"></div>
                 <div class="grid grid-cols-4 gap-3 bg-slate-700/30 p-2 rounded-lg border border-slate-700">
-                    <div class="col-span-3">
-                        <input type="text" id="inpSeries" placeholder="Series Name (Optional)" class="input-field text-sm bg-slate-800">
-                    </div>
-                    <div class="relative">
-                        <span class="absolute right-2 top-3 text-[10px] text-slate-500">Part#</span>
-                        <input type="number" id="inpSeriesPart" placeholder="1" class="input-field text-sm bg-slate-800">
-                    </div>
+                    <div class="col-span-3"><input type="text" id="inpSeries" placeholder="Series Name (Optional)" class="input-field text-sm bg-slate-800"></div>
+                    <div class="relative"><span class="absolute right-2 top-3 text-[10px] text-slate-500">Part#</span><input type="number" id="inpSeriesPart" placeholder="1" class="input-field text-sm bg-slate-800"></div>
                 </div>
-                
-                <div class="relative">
-                     <i class="fa-solid fa-link absolute left-3 top-3.5 text-slate-500 text-xs"></i>
-                    <input type="url" id="inpLink" placeholder="AO3 / Wattpad Link" class="input-field pl-8 text-sm">
-                </div>
-                
+                <div class="relative"><i class="fa-solid fa-link absolute left-3 top-3.5 text-slate-500 text-xs"></i><input type="url" id="inpLink" placeholder="AO3 / Wattpad Link" class="input-field pl-8 text-sm"></div>
                 <div class="p-4 bg-slate-700/30 rounded-xl space-y-3 border border-slate-700">
                     <div class="grid grid-cols-2 gap-3">
-                        <select id="inpReadStatus" class="input-field custom-select bg-slate-800" onchange="toggleDateVisibility()">
-                            <option value="unread">Unread</option>
-                            <option value="read">Read</option>
-                        </select>
-                         <select id="inpStatus" class="input-field custom-select bg-slate-800">
-                            <option value="wip">WIP</option>
-                            <option value="complete">Complete</option>
-                        </select>
+                        <select id="inpReadStatus" class="input-field custom-select bg-slate-800" onchange="toggleDateVisibility()"><option value="unread">Unread</option><option value="read">Read</option></select>
+                        <select id="inpStatus" class="input-field custom-select bg-slate-800"><option value="wip">WIP</option><option value="complete">Complete</option></select>
                     </div>
-
-                    <div id="divDateFinished" class="hidden w-full animate-fade-in">
-                        <label class="text-xs text-emerald-400 font-bold ml-1 mb-1 block">Date Finished</label>
-                        <input type="date" id="inpDateFinished" class="input-field bg-slate-800">
-                    </div>
-                    
-                    <select id="inpCoverStatus" class="input-field custom-select bg-slate-800">
-                        <option value="not">No Cover</option>
-                        <option value="yes">Cover Made</option>
-                    </select>
+                    <div id="divDateFinished" class="hidden w-full animate-fade-in"><label class="text-xs text-emerald-400 font-bold ml-1 mb-1 block">Date Finished</label><input type="date" id="inpDateFinished" class="input-field bg-slate-800"></div>
+                    <select id="inpCoverStatus" class="input-field custom-select bg-slate-800"><option value="not">No Cover</option><option value="yes">Cover Made</option></select>
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="relative">
-                        <span class="absolute right-3 top-3 text-xs text-slate-500">words</span>
-                        <input type="number" id="inpWords" placeholder="0" class="input-field">
-                    </div>
-                    <div class="relative">
-                        <span class="absolute right-3 top-3 text-xs text-slate-500">ch.</span>
-                        <input type="number" id="inpChapters" placeholder="0" class="input-field">
-                    </div>
+                    <div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">words</span><input type="number" id="inpWords" placeholder="0" class="input-field"></div>
+                    <div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">ch.</span><input type="number" id="inpChapters" placeholder="0" class="input-field"></div>
                 </div>
-
                 <div class="space-y-3">
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 ml-1 uppercase tracking-wide">Summary</label>
-                        <textarea id="inpSummary" placeholder="Paste official summary..." rows="3" class="input-field text-sm leading-relaxed text-slate-300"></textarea>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-indigo-400 ml-1 uppercase tracking-wide"><i class="fa-regular fa-note-sticky mr-1"></i> My Notes</label>
-                        <textarea id="inpNotes" placeholder="Personal thoughts, to-read notes..." rows="2" class="input-field border-indigo-500/30 bg-indigo-500/5 text-sm"></textarea>
-                    </div>
+                    <div><label class="text-xs font-bold text-slate-400 ml-1 uppercase tracking-wide">Summary</label><textarea id="inpSummary" placeholder="Paste official summary..." rows="3" class="input-field text-sm leading-relaxed text-slate-300"></textarea></div>
+                    <div><label class="text-xs font-bold text-indigo-400 ml-1 uppercase tracking-wide"><i class="fa-regular fa-note-sticky mr-1"></i> My Notes</label><textarea id="inpNotes" placeholder="Personal thoughts..." rows="2" class="input-field border-indigo-500/30 bg-indigo-500/5 text-sm"></textarea></div>
                 </div>
-                
                 <div class="space-y-3 pt-2 border-t border-slate-700">
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="text-xs text-slate-400 ml-1 font-bold">Ships</label>
-                            <select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')">
-                                <option value="">Select used...</option>
-                            </select>
-                        </div>
-                        <textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-center mb-1">
-                            <label class="text-xs text-slate-400 ml-1 font-bold">Tags</label>
-                            <select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')">
-                                <option value="">Select used...</option>
-                            </select>
-                        </div>
-                        <textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea>
-                    </div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used...</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used...</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
                 </div>
-
                 <div class="flex gap-3 mt-6 pt-4 border-t border-slate-700">
-                    <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-400 p-3 rounded-xl font-bold w-1/4 transition-colors border border-red-500/20">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+                    <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-400 p-3 rounded-xl font-bold w-1/4 transition-colors border border-red-500/20"><i class="fa-solid fa-trash"></i></button>
                     <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white p-3 rounded-xl font-bold flex-1 shadow-lg shadow-indigo-500/25 transition-all transform active:scale-95">Save Fic</button>
                 </div>
             </form>
@@ -383,17 +263,20 @@
 
     <script>
         let fics = [];
+        // Chart instances
+        let chartInstances = { fandoms: null, ships: null, tags: null };
 
         document.addEventListener('DOMContentLoaded', () => {
             const stored = localStorage.getItem('ficLibData');
             if (stored) {
-                fics = JSON.parse(stored);
-                // Backwards compatibility normalization
-                fics.forEach(f => {
-                    if(f.cover_status) { f.coverStatus = f.cover_status; delete f.cover_status; }
-                    if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
-                    if(f.date_finished) { f.dateFinished = f.date_finished; delete f.date_finished; }
-                });
+                try {
+                    fics = JSON.parse(stored);
+                    fics.forEach(f => {
+                        if(f.cover_status) { f.coverStatus = f.cover_status; delete f.cover_status; }
+                        if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
+                        if(f.date_finished) { f.dateFinished = f.date_finished; delete f.date_finished; }
+                    });
+                } catch(e) { console.error("Data load error", e); fics = []; }
                 renderLibrary();
             }
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
@@ -403,253 +286,150 @@
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-btn').forEach(el => {
-                el.classList.remove('text-indigo-400');
-                el.classList.add('text-slate-500');
-            });
+            document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active', 'text-indigo-400'); el.classList.add('text-slate-500'); });
             const activeBtn = document.getElementById(`btn-${tab}`);
-            activeBtn.classList.remove('text-slate-500');
-            activeBtn.classList.add('text-indigo-400');
-            
+            activeBtn.classList.remove('text-slate-500'); activeBtn.classList.add('active', 'text-indigo-400');
             if(tab === 'dashboard') updateDashboard();
             if(tab === 'report') updateReport();
             if(tab === 'discovery') renderDiscovery();
-            
             window.scrollTo(0,0);
         }
+        function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); }
 
-        function saveData() {
-            localStorage.setItem('ficLibData', JSON.stringify(fics));
-            renderLibrary(); 
-        }
-
-        // --- DYNAMIC FILTERS ---
+        // --- FILTERS & LIBRARY ---
         function populateFilterDropdowns() {
-            const shipSet = new Set();
-            const tagSet = new Set();
-            fics.forEach(f => {
-                (f.ships || []).forEach(s => shipSet.add(s.trim()));
-                (f.tags || []).forEach(t => tagSet.add(t.trim()));
-            });
-
+            const shipSet = new Set(), tagSet = new Set();
+            fics.forEach(f => { (f.ships || []).forEach(s => shipSet.add(s.trim())); (f.tags || []).forEach(t => tagSet.add(t.trim())); });
             const fill = (id, items, label) => {
                 const select = document.getElementById(id);
                 const currentVal = select.value;
                 select.innerHTML = `<option value="all">${label}</option>`;
-                items.sort((a,b) => a.localeCompare(b)).forEach(i => {
-                    if(!i) return;
-                    const opt = document.createElement('option');
-                    opt.value = i;
-                    opt.innerText = i;
-                    select.appendChild(opt);
-                });
+                items.sort((a,b) => a.localeCompare(b)).forEach(i => { if(i) { const opt = document.createElement('option'); opt.value = i; opt.innerText = i; select.appendChild(opt); }});
                 if(items.includes(currentVal)) select.value = currentVal;
             };
-
-            fill('filterShips', Array.from(shipSet), 'Ship: All');
-            fill('filterTags', Array.from(tagSet), 'Tag: All');
+            fill('filterShips', Array.from(shipSet), 'Ship: All'); fill('filterTags', Array.from(tagSet), 'Tag: All');
         }
 
-        // --- RENDER LIBRARY (FIXED CRASH) ---
         function renderLibrary() {
             populateFilterDropdowns();
             const list = document.getElementById('ficList');
             list.innerHTML = '';
-            
             const search = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('filterStatus').value;
-            const chapterFilter = document.getElementById('filterChapters').value;
-            const completionFilter = document.getElementById('filterCompletion').value;
-            const coverFilter = document.getElementById('filterCover').value;
             const shipFilter = document.getElementById('filterShips').value;
             const tagFilter = document.getElementById('filterTags').value;
+            const chapterFilter = document.getElementById('filterChapters').value;
             const sortMode = document.getElementById('sortOption').value;
 
-            // 1. Filter
-            let filtered = fics.filter(f => {
-                if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
-                
-                const chaps = f.chapters || 0;
-                if (chapterFilter === 'short' && chaps >= 10) return false;
-                if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false;
-                if (chapterFilter === 'long' && chaps <= 50) return false;
-
-                if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
-                if (coverFilter !== 'all') {
-                    const hasCover = (f.coverStatus === 'yes');
-                    if (coverFilter === 'yes' && !hasCover) return false;
-                    if (coverFilter === 'not' && hasCover) return false;
-                }
-                if (shipFilter !== 'all' && (!f.ships || !f.ships.includes(shipFilter))) return false;
-                if (tagFilter !== 'all' && (!f.tags || !f.tags.includes(tagFilter))) return false;
-
-                if (search) {
-                    const txt = `${f.title} ${f.series || ''} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase();
-                    return txt.includes(search);
-                }
-                return true;
-            });
-
-            // 2. Group Series
-            const groups = {};
-            const displayList = [];
-
-            filtered.forEach(f => {
-                if(f.series && f.series.trim() !== "") {
-                    const sName = f.series.trim();
-                    if(!groups[sName]) groups[sName] = [];
-                    groups[sName].push(f);
-                } else {
-                    displayList.push({ type: 'fic', data: f });
-                }
-            });
-
-            // 3. Process Series Objects
-            Object.keys(groups).forEach(seriesName => {
-                const seriesFics = groups[seriesName];
-                seriesFics.sort((a,b) => (a.seriesPart || 0) - (b.seriesPart || 0));
-                
-                // CRASH FIX: Ensure date parsing is safe
-                const dates = seriesFics.map(f => {
-                    const d = parseDateLocal(f.dateFinished);
-                    return d ? d.getTime() : 0;
+            try {
+                let filtered = fics.filter(f => {
+                    if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
+                    if (shipFilter !== 'all' && (!f.ships || !f.ships.includes(shipFilter))) return false;
+                    if (tagFilter !== 'all' && (!f.tags || !f.tags.includes(tagFilter))) return false;
+                    const chaps = f.chapters || 0;
+                    if (chapterFilter === 'short' && chaps >= 10) return false;
+                    if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false;
+                    if (chapterFilter === 'long' && chaps <= 50) return false;
+                    if (search) {
+                        const txt = `${f.title} ${f.series || ''} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase();
+                        return txt.includes(search);
+                    }
+                    return true;
                 });
-                const latest = Math.max(...dates);
 
-                displayList.push({
-                    type: 'series',
-                    title: seriesName,
-                    fandom: seriesFics[0].fandom,
-                    author: seriesFics[0].author,
-                    totalWords: seriesFics.reduce((sum, f) => sum + (f.wordcount||0), 0),
-                    items: seriesFics,
-                    latestTimestamp: latest
+                const groups = {};
+                const displayList = [];
+                filtered.forEach(f => {
+                    if(f.series && f.series.trim() !== "") {
+                        const sName = f.series.trim();
+                        if(!groups[sName]) groups[sName] = [];
+                        groups[sName].push(f);
+                    } else {
+                        displayList.push({ type: 'fic', data: f });
+                    }
                 });
-            });
 
-            // 4. Sort Display List
-            displayList.sort((a, b) => {
-                // CRASH FIX: Safer helpers
-                const getTs = (item) => {
-                    if(item.type === 'series') return item.latestTimestamp || 0;
-                    const d = parseDateLocal(item.data.dateFinished);
-                    return d ? d.getTime() : 0;
-                };
-                const getWords = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount||0);
-                const getTitle = (item) => item.type === 'series' ? item.title : item.data.title;
+                Object.keys(groups).forEach(seriesName => {
+                    const seriesFics = groups[seriesName];
+                    seriesFics.sort((a,b) => (a.seriesPart || 0) - (b.seriesPart || 0));
+                    const dates = seriesFics.map(f => { const d = parseDateLocal(f.dateFinished); return d ? d.getTime() : 0; });
+                    displayList.push({
+                        type: 'series', title: seriesName, fandom: seriesFics[0].fandom, author: seriesFics[0].author,
+                        totalWords: seriesFics.reduce((sum, f) => sum + (f.wordcount||0), 0),
+                        items: seriesFics, latestTimestamp: Math.max(...dates)
+                    });
+                });
 
-                if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b));
-                if (sortMode === 'words') return getWords(b) - getWords(a);
-                // Default: Newest date
-                return getTs(b) - getTs(a); 
-            });
+                displayList.sort((a, b) => {
+                    const getTs = (item) => {
+                        if(item.type === 'series') return item.latestTimestamp || 0;
+                        const d = parseDateLocal(item.data.dateFinished); return d ? d.getTime() : 0;
+                    };
+                    const getWords = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount||0);
+                    const getTitle = (item) => item.type === 'series' ? item.title : item.data.title;
 
-            // 5. Render
-            displayList.forEach(item => {
-                if (item.type === 'fic') {
-                    renderFicCard(item.data, list);
-                } else {
-                    renderSeriesCard(item, list);
-                }
-            });
-            
-            if(displayList.length === 0) {
-                 list.innerHTML = `<div class="text-center text-slate-500 py-10">No fics found. Try adjusting filters.</div>`;
+                    if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b));
+                    if (sortMode === 'words') return getWords(b) - getWords(a);
+                    return getTs(b) - getTs(a); 
+                });
+
+                if(displayList.length === 0) list.innerHTML = `<div class="text-center text-slate-500 py-10">No fics found.</div>`;
+                
+                displayList.forEach(item => {
+                    if (item.type === 'fic') renderFicCard(item.data, list);
+                    else renderSeriesCard(item, list);
+                });
+            } catch(err) {
+                console.error(err);
+                list.innerHTML = `<div class="text-red-400 text-center py-5">Error rendering list. Check console.</div>`;
             }
         }
 
-        // --- COMPONENT: FIC CARD ---
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
-            const hasCover = f.coverStatus === 'yes';
             const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
-            
-            const statusBadge = isComplete 
-                ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' 
-                : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
-            const coverBadge = hasCover 
-                ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' 
-                : '';
-            
-            // Subtitle for series inside card
-            const seriesHtml = (f.series && f.series.trim() !== "") 
-                ? `<div class="text-[10px] text-indigo-300 font-bold mb-0.5 tracking-wide"><i class="fa-solid fa-layer-group mr-1"></i>Part ${f.seriesPart}</div>` 
-                : '';
+            const statusBadge = isComplete ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
+            const coverBadge = f.coverStatus === 'yes' ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' : '';
+            const seriesHtml = (f.series && f.series.trim() !== "") ? `<div class="text-[10px] text-indigo-300 font-bold mb-0.5 tracking-wide"><i class="fa-solid fa-layer-group mr-1"></i>Part ${f.seriesPart}</div>` : '';
 
             const item = document.createElement('div');
             item.className = 'fic-card p-4 rounded-xl flex justify-between cursor-pointer relative group mb-3';
             item.onclick = () => openEditModal(f.id);
-            
             item.innerHTML = `
                 <div class="flex-1 min-w-0 pr-3">
-                    <div class="flex items-start justify-between">
-                        <span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1 truncate max-w-[120px]">${f.fandom || 'No Fandom'}</span>
-                    </div>
+                    <div class="flex items-start justify-between"><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1 truncate max-w-[120px]">${f.fandom || 'No Fandom'}</span></div>
                     ${seriesHtml}
                     <h3 class="font-bold text-lg text-white truncate leading-tight mt-0.5 mb-0.5">${f.title}</h3>
-                    <p class="text-xs text-slate-400 mb-2 truncate">${f.author || 'Unknown Author'}</p>
-                    <div class="flex flex-wrap items-center gap-2">
-                        ${statusBadge}
-                        ${coverBadge}
-                        ${isRead ? '<span class="text-emerald-400 text-xs flex items-center gap-1"><i class="fa-solid fa-check"></i> Read</span>' : ''}
-                        ${f.notes ? '<span class="text-indigo-400 text-xs"><i class="fa-solid fa-note-sticky" title="Has Notes"></i></span>' : ''}
-                    </div>
+                    <p class="text-xs text-slate-400 mb-2 truncate">${f.author || 'Unknown'}</p>
+                    <div class="flex flex-wrap items-center gap-2">${statusBadge} ${coverBadge} ${isRead ? '<span class="text-emerald-400 text-xs"><i class="fa-solid fa-check"></i> Read</span>' : ''}</div>
                 </div>
                 <div class="flex flex-col items-end justify-between pl-2 min-w-[70px] border-l border-slate-700/50 my-1">
-                    ${f.originalLink ? 
-                        `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg transition-all"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` 
-                        : '<div class="h-6"></div>'
-                    }
-                    <div class="text-[10px] text-slate-500 text-right font-mono mt-auto">
-                        <span class="block">${(f.wordcount||0).toLocaleString()}w</span>
-                        ${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}
-                    </div>
-                </div>
-            `;
+                    ${f.originalLink ? `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : '<div class="h-6"></div>'}
+                    <div class="text-[10px] text-slate-500 text-right font-mono mt-auto"><span class="block">${(f.wordcount||0).toLocaleString()}w</span>${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}</div>
+                </div>`;
             container.appendChild(item);
         }
 
-        // --- COMPONENT: SERIES CARD ---
         function renderSeriesCard(series, container) {
             const div = document.createElement('div');
             div.className = 'series-folder rounded-xl mb-3 cursor-pointer overflow-hidden';
-            
             div.onclick = function(e) {
-                // Prevent toggling if clicking inner content (like links)
                 if(e.target.closest('.fic-card')) return;
-
                 const content = this.querySelector('.series-content');
                 const icon = this.querySelector('.chevron-icon');
-                const isHidden = content.classList.contains('hidden');
-                
-                if(isHidden) {
-                    content.classList.remove('hidden');
-                    icon.style.transform = 'rotate(180deg)';
-                } else {
-                    content.classList.add('hidden');
-                    icon.style.transform = 'rotate(0deg)';
-                }
+                content.classList.toggle('hidden');
+                icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
             };
-
             div.innerHTML = `
                 <div class="p-4 flex justify-between items-center bg-slate-800/80 backdrop-blur-sm z-10 relative">
                     <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Series</span>
-                            <span class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">${series.fandom}</span>
-                        </div>
+                        <div class="flex items-center gap-2 mb-1"><span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Series</span><span class="text-[10px] text-slate-400 uppercase font-bold">${series.fandom}</span></div>
                         <h3 class="font-bold text-lg text-white leading-tight">${series.title}</h3>
                         <p class="text-xs text-slate-400 mt-1">${series.items.length} Works • ${series.totalWords.toLocaleString()} words</p>
                     </div>
-                    <div class="pl-4 text-slate-500">
-                        <i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300"></i>
-                    </div>
+                    <div class="pl-4 text-slate-500"><i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300"></i></div>
                 </div>
-                <div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in">
-                    </div>
-            `;
-            
+                <div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in"></div>`;
             const contentBox = div.querySelector('.series-content');
             series.items.forEach(f => renderFicCard(f, contentBox));
             container.appendChild(div);
@@ -659,356 +439,201 @@
         function renderDiscovery() {
             const container = document.getElementById('discoveryList');
             const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
-            
-            if (unread.length === 0) {
-                container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read! Add more to use Discovery.</div>';
-                return;
-            }
-            const shuffled = unread.sort(() => 0.5 - Math.random()).slice(0, 5);
+            if (unread.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read!</div>'; return; }
             container.innerHTML = '';
-            shuffled.forEach(f => {
+            unread.sort(() => 0.5 - Math.random()).slice(0, 5).forEach(f => {
                 const card = document.createElement('div');
                 card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
-                const tagsHtml = (f.tags || []).slice(0, 5).map(t => `<span class="tag-chip">${t}</span>`).join('');
-                const shipsHtml = (f.ships || []).map(s => `<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('');
-
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">${f.fandom}</span>
-                            <h3 class="text-xl font-bold text-white leading-tight">${f.title}</h3>
-                            <p class="text-sm text-slate-400">by ${f.author}</p>
-                        </div>
-                        ${f.originalLink ? 
-                            `<button onclick="window.open('${f.originalLink}', '_blank')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Read Now</button>` 
-                            : ''
-                        }
-                    </div>
-                    <div class="flex flex-wrap gap-2 mb-3">${shipsHtml}${tagsHtml}</div>
-                    <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">
-                        ${f.summary || 'No summary provided.'}
-                    </div>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-700/50">
-                        <span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words</span>
-                        <button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">View Details</button>
-                    </div>
-                `;
+                    <div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-bold text-slate-500 uppercase">${f.fandom}</span><h3 class="text-xl font-bold text-white leading-tight">${f.title}</h3><p class="text-sm text-slate-400">by ${f.author}</p></div></div>
+                    <div class="flex flex-wrap gap-2 mb-3">${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary.'}</div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words</span><button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">Details</button></div>`;
                 container.appendChild(card);
             });
         }
 
-        // --- DASHBOARD ---
+        // --- UPDATED DASHBOARD LOGIC ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
+            
+            // 1. Global Stats
             document.getElementById('stat-total').innerText = fics.length;
             document.getElementById('stat-words').innerText = readFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             
-            // --- YEARLY STATS CALC ---
-            const yearlyStats = {};
-            readFics.forEach(f => {
+            // 2. Animated Progress Bar
+            document.getElementById('stat-read-count').innerText = `Read: ${readFics.length}`;
+            document.getElementById('stat-unread-count').innerText = `Unread: ${fics.length - readFics.length}`;
+            const pct = fics.length ? Math.round((readFics.length / fics.length) * 100) : 0;
+            const bar = document.getElementById('stat-progress-bar');
+            bar.style.width = `${pct}%`;
+            bar.innerText = `${pct}%`;
+
+            // 3. Populate Year Dropdown & Init Year Stats
+            const years = [...new Set(readFics.map(f => {
                 const d = parseDateLocal(f.dateFinished);
-                if(!d) return;
-                const year = d.getFullYear();
-                if(!yearlyStats[year]) yearlyStats[year] = { count: 0, words: 0 };
-                yearlyStats[year].count++;
-                yearlyStats[year].words += (f.wordcount || 0);
-            });
+                return d ? d.getFullYear() : null;
+            }).filter(y => y))].sort((a,b) => b-a);
 
-            const yearlyContainer = document.getElementById('yearly-stats-container');
-            if(Object.keys(yearlyStats).length === 0) {
-                yearlyContainer.innerHTML = '<p class="text-xs text-slate-500 text-center italic">Finish fics to see yearly progress</p>';
-            } else {
-                yearlyContainer.innerHTML = '';
-                // Sort Years Descending
-                Object.keys(yearlyStats).sort((a,b) => b-a).forEach(year => {
-                    const data = yearlyStats[year];
-                    const maxScale = 500000; // Visual scale max (500k words)
-                    let width = (data.words / maxScale) * 100;
-                    if(width > 100) width = 100;
-
-                    yearlyContainer.innerHTML += `
-                        <div class="mb-4 last:mb-0">
-                            <div class="flex justify-between text-xs font-bold text-slate-400 mb-1">
-                                <span class="text-indigo-300">${year}</span>
-                                <span>${data.words.toLocaleString()}w <span class="text-slate-600 font-normal">(${data.count} fics)</span></span>
-                            </div>
-                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700/50">
-                                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full" style="width: ${width}%"></div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            // Top Lists
-            const getTop = (list, keyFn) => {
-                const counts = {};
-                list.forEach(f => {
-                    const keys = keyFn(f);
-                    if (Array.isArray(keys)) keys.forEach(k => counts[k] = (counts[k] || 0) + 1);
-                    else if (keys) counts[keys] = (counts[keys] || 0) + 1;
-                });
-                return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            };
-
-            renderTopList('list-top-fandoms', getTop(readFics, f => f.fandom));
-            renderTopList('list-top-ships', getTop(readFics, f => f.ships));
-        }
-
-        function renderTopList(id, data) {
-            const el = document.getElementById(id);
-            el.innerHTML = data.length ? '' : '<p class="text-slate-600 text-xs italic text-center">No reading data yet</p>';
-            data.forEach(([k, v], i) => {
-                el.innerHTML += `
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-700/50 last:border-0 items-center">
-                        <div class="flex items-center gap-3 overflow-hidden">
-                             <span class="text-xs font-bold text-slate-500 w-4">${i+1}.</span>
-                             <span class="truncate text-slate-200">${k}</span>
-                        </div>
-                        <span class="badge bg-slate-700 text-slate-300">${v}</span>
-                    </div>`;
-            });
-        }
-
-        // --- REPORT ---
-        function updateReport() {
-            const container = document.getElementById('reportContent');
-            const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
+            const yearSelect = document.getElementById('yearSelector');
+            const currentSel = yearSelect.value;
+            yearSelect.innerHTML = '';
             
-            if (finished.length === 0) {
-                container.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-slate-600"><i class="fa-regular fa-calendar-xmark text-4xl mb-3"></i><p>No finished dates logged</p></div>';
+            if (years.length === 0) {
+                yearSelect.innerHTML = '<option value="">No Data</option>';
+            } else {
+                years.forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.innerText = y;
+                    yearSelect.appendChild(opt);
+                });
+                // Keep previous selection or select latest year
+                if (currentSel && years.includes(parseInt(currentSel))) {
+                    yearSelect.value = currentSel;
+                } else {
+                    yearSelect.value = years[0];
+                }
+            }
+            renderYearlyStats();
+
+            // 4. Pie Charts Logic
+            renderPieChart('chartFandoms', readFics, f => f.fandom, 'fandoms');
+            renderPieChart('chartShips', readFics, f => f.ships, 'ships');
+            renderPieChart('chartTags', readFics, f => f.tags, 'tags');
+        }
+
+        function renderYearlyStats() {
+            const year = parseInt(document.getElementById('yearSelector').value);
+            if (!year) {
+                document.getElementById('year-stat-words').innerText = "0";
+                document.getElementById('year-stat-count').innerText = "0";
                 return;
             }
 
+            const readFics = fics.filter(f => f.rereadStatus === 'read');
+            const ficsThisYear = readFics.filter(f => {
+                const d = parseDateLocal(f.dateFinished);
+                return d && d.getFullYear() === year;
+            });
+
+            const words = ficsThisYear.reduce((s, f) => s + (f.wordcount || 0), 0);
+            document.getElementById('year-stat-words').innerText = words.toLocaleString();
+            document.getElementById('year-stat-count').innerText = ficsThisYear.length;
+        }
+
+        function renderPieChart(canvasId, list, keyFn, instanceName) {
+            const counts = {};
+            list.forEach(f => {
+                const keys = keyFn(f);
+                if (Array.isArray(keys)) keys.forEach(k => counts[k] = (counts[k] || 0) + 1);
+                else if (keys) counts[keys] = (counts[keys] || 0) + 1;
+            });
+            
+            // Sort and take top 5
+            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            const labels = sorted.map(x => x[0]);
+            const data = sorted.map(x => x[1]);
+
+            // Chart Colors
+            const colors = [
+                '#818cf8', // Indigo 400
+                '#a78bfa', // Violet 400
+                '#c084fc', // Purple 400
+                '#6366f1', // Indigo 500
+                '#94a3b8'  // Slate 400
+            ];
+
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Destroy existing chart to prevent glitch
+            if (chartInstances[instanceName]) {
+                chartInstances[instanceName].destroy();
+            }
+
+            chartInstances[instanceName] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: '#1e293b',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } }
+                    }
+                }
+            });
+        }
+
+        // --- HISTORY REPORT ---
+        function updateReport() {
+            const container = document.getElementById('reportContent');
+            const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
+            if (finished.length === 0) { container.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-slate-600"><i class="fa-regular fa-calendar-xmark text-4xl mb-3"></i><p>No finished dates</p></div>'; return; }
+            
             const groups = {};
-            finished.forEach(f => {
-                let d = parseDateLocal(f.dateFinished); 
-                if (!d) return;
-                const year = d.getFullYear();
-                const month = d.getMonth();
-                if (!groups[year]) groups[year] = {};
-                if (!groups[year][month]) groups[year][month] = [];
-                groups[year][month].push({ ...f, dateObj: d });
-            });
-
+            finished.forEach(f => { const d = parseDateLocal(f.dateFinished); if(d) { const y = d.getFullYear(), m = d.getMonth(); if(!groups[y]) groups[y]={}; if(!groups[y][m]) groups[y][m]=[]; groups[y][m].push({...f, dObj: d}); }});
+            
             container.innerHTML = '';
-            Object.keys(groups).sort((a,b) => b - a).forEach(year => {
-                const yearCount = Object.values(groups[year]).reduce((sum, arr) => sum + arr.length, 0);
-                const yearDiv = document.createElement('div');
-                yearDiv.className = 'bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden';
-                yearDiv.innerHTML = `<div class="bg-slate-700/50 px-5 py-3 font-bold flex justify-between items-center"><span class="text-indigo-300 font-heading">${year}</span><span class="badge bg-slate-600 text-white">${yearCount} Fics</span></div>`;
-                
-                Object.keys(groups[year]).sort((a,b) => b - a).forEach(month => {
-                    const monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
-                    const monthList = groups[year][month];
-                    const monthDiv = document.createElement('div');
-                    monthDiv.className = 'p-5 border-b border-slate-700 last:border-0';
-                    monthDiv.innerHTML = `<h4 class="font-bold text-white text-sm mb-3 border-l-2 border-indigo-500 pl-2">${monthName} <span class="text-slate-500 font-normal ml-1">(${monthList.length})</span></h4>`;
-                    
-                    monthList.sort((a,b) => b.dateObj - a.dateObj).forEach(f => {
-                        monthDiv.innerHTML += `
-                            <div class="flex justify-between items-center text-sm py-2 hover:bg-slate-700/30 -mx-2 px-2 rounded-lg transition-colors">
-                                <span class="truncate w-3/4 font-medium text-slate-300">${f.title}</span>
-                                <span class="text-slate-500 text-xs font-mono">${f.dateObj.toLocaleDateString(undefined, {month:'numeric', day:'numeric'})}</span>
-                            </div>`;
+            Object.keys(groups).sort((a,b)=>b-a).forEach(y => {
+                const yDiv = document.createElement('div');
+                yDiv.className = 'bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden mb-4';
+                const count = Object.values(groups[y]).reduce((s,a)=>s+a.length,0);
+                yDiv.innerHTML = `<div class="bg-slate-700/50 px-5 py-3 font-bold flex justify-between items-center"><span class="text-indigo-300 font-heading">${y}</span><span class="badge bg-slate-600 text-white">${count} Fics</span></div>`;
+                Object.keys(groups[y]).sort((a,b)=>b-a).forEach(m => {
+                    const mDiv = document.createElement('div'); mDiv.className = 'p-5 border-b border-slate-700 last:border-0';
+                    mDiv.innerHTML = `<h4 class="font-bold text-white text-sm mb-3 border-l-2 border-indigo-500 pl-2">${new Date(y,m).toLocaleString('default',{month:'long'})}</h4>`;
+                    groups[y][m].sort((a,b)=>b.dObj-a.dObj).forEach(f => {
+                         mDiv.innerHTML += `<div class="flex justify-between items-center text-sm py-2 hover:bg-slate-700/30 -mx-2 px-2 rounded-lg transition-colors"><span class="truncate w-3/4 font-medium text-slate-300">${f.title}</span><span class="text-slate-500 text-xs font-mono">${f.dObj.toLocaleDateString(undefined,{month:'numeric',day:'numeric'})}</span></div>`;
                     });
-                    yearDiv.appendChild(monthDiv);
+                    yDiv.appendChild(mDiv);
                 });
-                container.appendChild(yearDiv);
+                container.appendChild(yDiv);
             });
         }
 
-        // --- HELPERS ---
-        function parseDateLocal(input) {
-            if(!input) return null;
-            if(typeof input === 'number') return new Date((input + 978307200) * 1000);
-            if(typeof input === 'string' && input.includes('-') && input.length === 10) {
-                const [y, m, d] = input.split('-').map(Number);
-                return new Date(y, m - 1, d);
-            }
-            return new Date(input); 
-        }
-
-        function renderSuggestions() {
-            const shipSet = new Set();
-            const tagSet = new Set();
-            fics.forEach(f => {
-                (f.ships || []).forEach(s => shipSet.add(s));
-                (f.tags || []).forEach(t => tagSet.add(t));
-            });
-            const sortedShips = Array.from(shipSet).sort((a, b) => a.localeCompare(b));
-            const sortedTags = Array.from(tagSet).sort((a, b) => a.localeCompare(b));
-
-            const fillSelect = (id, items) => {
-                const el = document.getElementById(id);
-                el.innerHTML = '<option value="">Select used...</option>';
-                items.forEach(i => {
-                    const opt = document.createElement('option');
-                    opt.value = i;
-                    opt.innerText = i;
-                    el.appendChild(opt);
-                });
-            };
-            fillSelect('selShipsHelper', sortedShips);
-            fillSelect('selTagsHelper', sortedTags);
-        }
-
-        function pickSuggestion(inputId, selectId) {
-            const select = document.getElementById(selectId);
-            const val = select.value;
-            if(!val) return;
-            const input = document.getElementById(inputId);
-            const current = input.value.trim();
-            if(current.length === 0) { input.value = val; } 
-            else if(!current.includes(val)) { input.value = current + ', ' + val; }
-            select.value = ""; 
-        }
-
-        // --- FORMS ---
-        function toggleDateVisibility() {
-            const status = document.getElementById('inpReadStatus').value;
-            const dateDiv = document.getElementById('divDateFinished');
-            if (status === 'read') {
-                dateDiv.classList.remove('hidden');
-                if(!document.getElementById('inpDateFinished').value) {
-                    document.getElementById('inpDateFinished').valueAsDate = new Date();
-                }
-            } else {
-                dateDiv.classList.add('hidden');
-            }
-        }
-
-        function openAddModal() {
-            document.getElementById('ficForm').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('modalTitle').innerText = 'Add New Fic';
-            document.getElementById('btnDelete').classList.add('hidden');
-            toggleDateVisibility(); 
-            renderSuggestions(); 
-            document.getElementById('ficModal').classList.remove('hidden');
-        }
-
+        // --- HELPERS & MODAL ---
+        function parseDateLocal(input) { if(!input) return null; if(typeof input==='number') return new Date((input+978307200)*1000); if(typeof input==='string' && input.includes('-') && input.length===10) { const [y,m,d]=input.split('-').map(Number); return new Date(y,m-1,d); } return new Date(input); }
+        function pickSuggestion(id, selId) { const sel=document.getElementById(selId); const val=sel.value; if(!val)return; const inp=document.getElementById(id); const cur=inp.value.trim(); inp.value=cur.length===0?val:(!cur.includes(val)?cur+', '+val:cur); sel.value=""; }
+        function toggleDateVisibility() { const s=document.getElementById('inpReadStatus').value; document.getElementById('divDateFinished').classList.toggle('hidden', s!=='read'); if(s==='read' && !document.getElementById('inpDateFinished').value) document.getElementById('inpDateFinished').valueAsDate = new Date(); }
+        function openAddModal() { document.getElementById('ficForm').reset(); document.getElementById('editId').value=''; document.getElementById('modalTitle').innerText='Add New Fic'; document.getElementById('btnDelete').classList.add('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden'); }
         function openEditModal(id) {
-            const f = fics.find(x => x.id === id);
-            if(!f) return;
-            document.getElementById('editId').value = f.id;
-            document.getElementById('modalTitle').innerText = 'Edit Fic';
-            
-            document.getElementById('inpTitle').value = f.title;
-            document.getElementById('inpAuthor').value = f.author || '';
-            document.getElementById('inpFandom').value = f.fandom || '';
-            document.getElementById('inpLink').value = f.originalLink || '';
-            document.getElementById('inpReadStatus').value = f.rereadStatus || 'unread';
-            document.getElementById('inpCoverStatus').value = f.coverStatus || 'not';
-            document.getElementById('inpStatus').value = f.status || 'wip';
-            document.getElementById('inpWords').value = f.wordcount || '';
-            document.getElementById('inpChapters').value = f.chapters || '';
-            document.getElementById('inpSummary').value = f.summary || '';
-            document.getElementById('inpNotes').value = f.notes || '';
-            document.getElementById('inpShips').value = (f.ships||[]).join(', ');
-            document.getElementById('inpTags').value = (f.tags||[]).join(', ');
-            
-            // New Fields
-            document.getElementById('inpSeries').value = f.series || '';
-            document.getElementById('inpSeriesPart').value = f.seriesPart || '';
-
-            const dateInput = document.getElementById('inpDateFinished');
-            if(f.dateFinished) {
-                if(typeof f.dateFinished === 'string' && f.dateFinished.length === 10) {
-                    dateInput.value = f.dateFinished;
-                } else {
-                    const d = parseDateLocal(f.dateFinished);
-                    if(d) dateInput.value = d.toISOString().split('T')[0];
-                }
-            } else {
-                dateInput.value = '';
-            }
-            
-            document.getElementById('btnDelete').classList.remove('hidden');
-            toggleDateVisibility(); 
-            renderSuggestions(); 
-            document.getElementById('ficModal').classList.remove('hidden');
+            const f=fics.find(x=>x.id===id); if(!f)return;
+            document.getElementById('editId').value=f.id; document.getElementById('modalTitle').innerText='Edit Fic';
+            ['inpTitle','inpAuthor','inpFandom','inpLink','inpStatus','inpWords','inpChapters','inpSummary','inpNotes'].forEach(k=>document.getElementById(k).value=f[k.replace('inp','').toLowerCase()]||'');
+            document.getElementById('inpReadStatus').value=f.rereadStatus||'unread'; document.getElementById('inpCoverStatus').value=f.coverStatus||'not';
+            document.getElementById('inpSeries').value=f.series||''; document.getElementById('inpSeriesPart').value=f.seriesPart||'';
+            document.getElementById('inpShips').value=(f.ships||[]).join(', '); document.getElementById('inpTags').value=(f.tags||[]).join(', ');
+            const dInput = document.getElementById('inpDateFinished');
+            if(f.dateFinished) { const d=parseDateLocal(f.dateFinished); dInput.value=d?d.toISOString().split('T')[0]:''; } else dInput.value='';
+            document.getElementById('btnDelete').classList.remove('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden');
         }
-
         function closeModal() { document.getElementById('ficModal').classList.add('hidden'); }
-        
-        function deleteFic() {
-            if(confirm("Permanently delete this fic from your library?")) {
-                const id = document.getElementById('editId').value;
-                fics = fics.filter(f => f.id !== id);
-                saveData();
-                closeModal();
-            }
-        }
-
+        function deleteFic() { if(confirm("Delete this fic?")) { fics=fics.filter(f=>f.id!==document.getElementById('editId').value); saveData(); closeModal(); } }
         function handleFormSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('editId').value;
-            const readStatus = document.getElementById('inpReadStatus').value;
-            const dateVal = document.getElementById('inpDateFinished').value;
-            const dateFinished = (readStatus === 'read' && dateVal) ? dateVal : null;
-
+            e.preventDefault(); const id=document.getElementById('editId').value;
             const obj = {
-                id: id || crypto.randomUUID(),
-                title: document.getElementById('inpTitle').value,
-                author: document.getElementById('inpAuthor').value,
-                fandom: document.getElementById('inpFandom').value,
-                originalLink: document.getElementById('inpLink').value,
-                rereadStatus: readStatus,
-                coverStatus: document.getElementById('inpCoverStatus').value,
-                status: document.getElementById('inpStatus').value,
-                wordcount: parseInt(document.getElementById('inpWords').value) || 0,
-                chapters: parseInt(document.getElementById('inpChapters').value) || 0,
-                summary: document.getElementById('inpSummary').value,
-                notes: document.getElementById('inpNotes').value,
-                ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s),
-                tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
-                dateFinished: dateFinished,
-                
-                // New Series Data
-                series: document.getElementById('inpSeries').value.trim(),
-                seriesPart: parseInt(document.getElementById('inpSeriesPart').value) || 0
+                id: id||crypto.randomUUID(), title: document.getElementById('inpTitle').value, author: document.getElementById('inpAuthor').value, fandom: document.getElementById('inpFandom').value,
+                originalLink: document.getElementById('inpLink').value, rereadStatus: document.getElementById('inpReadStatus').value, coverStatus: document.getElementById('inpCoverStatus').value,
+                status: document.getElementById('inpStatus').value, wordcount: parseInt(document.getElementById('inpWords').value)||0, chapters: parseInt(document.getElementById('inpChapters').value)||0,
+                summary: document.getElementById('inpSummary').value, notes: document.getElementById('inpNotes').value,
+                ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s), tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
+                dateFinished: document.getElementById('inpReadStatus').value==='read'?document.getElementById('inpDateFinished').value:null,
+                series: document.getElementById('inpSeries').value.trim(), seriesPart: parseInt(document.getElementById('inpSeriesPart').value)||0
             };
-
-            if(id) {
-                const idx = fics.findIndex(x => x.id === id);
-                fics[idx] = { ...fics[idx], ...obj };
-            } else {
-                fics.unshift(obj);
-            }
-            saveData();
-            closeModal();
+            if(id) { const idx=fics.findIndex(x=>x.id===id); fics[idx]={...fics[idx], ...obj}; } else fics.unshift(obj);
+            saveData(); closeModal();
         }
-
-        function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try {
-                    const json = JSON.parse(ev.target.result);
-                    fics = Array.isArray(json) ? json : (json.fics || []);
-                    saveData();
-                    alert(`Import successful: ${fics.length} fics loaded.`);
-                    switchTab('library');
-                } catch (err) { alert("Error: Invalid backup file."); }
-            };
-            reader.readAsText(file);
-        }
-
-        function exportData() {
-            const str = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ database_version: "1.0", fics: fics }, null, 2));
-            const a = document.createElement('a');
-            a.href = str;
-            a.download = "ficlib_backup.json";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        }
-
-        function clearData() {
-            if(confirm("⚠️ Warning: This will delete ALL data. This cannot be undone. Are you sure?")) { fics = []; saveData(); switchTab('library'); }
-        }
+        function handleFileUpload(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=(ev)=>{ try{ const j=JSON.parse(ev.target.result); fics=Array.isArray(j)?j:(j.fics||[]); saveData(); alert(`Loaded ${fics.length} fics.`); switchTab('library'); }catch(err){alert("Invalid backup.");} }; r.readAsText(f); }
+        function exportData() { const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({database_version:"1.0",fics:fics},null,2)); a.download="ficlib_backup.json"; document.body.appendChild(a); a.click(); a.remove(); }
+        function clearData() { if(confirm("Delete ALL data?")) { fics=[]; saveData(); switchTab('library'); } }
     </script>
 </body>
 </html>
