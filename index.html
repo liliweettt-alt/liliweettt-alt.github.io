@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v17</title>
+    <title>FicLib Tracker v18</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -121,6 +121,13 @@
                     <select id="filterStatus" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
                         <option value="all">Reading: All</option><option value="read">Read</option><option value="unread">Unread</option>
                     </select>
+                    <select id="filterCompletion" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="all">Status: All</option><option value="complete">Complete</option><option value="wip">WIP</option>
+                    </select>
+                    <select id="filterCover" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="all">Cover: All</option><option value="yes">Has Cover</option><option value="not">No Cover</option>
+                    </select>
+                    
                     <select id="filterShips" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Ship: All</option></select>
                     <select id="filterTags" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Tag: All</option></select>
                     <select id="filterChapters" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
@@ -207,7 +214,6 @@
                     <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wide" id="goalTitleYear">Reading Goal</h3>
                     <button onclick="toggleGoalEdit()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i> Edit</button>
                 </div>
-
                 <div id="goalDisplay">
                     <div class="flex justify-between text-xs text-slate-400 mb-1">
                         <span id="goalTextCurrent" class="font-mono text-white">0</span>
@@ -218,7 +224,6 @@
                     </div>
                     <p id="goalMessage" class="text-center text-[10px] text-slate-500 mt-2 italic">Set a goal to start tracking!</p>
                 </div>
-
                 <div id="goalEditor" class="hidden space-y-3 mt-4 border-t border-slate-700 pt-3 animate-fade-in">
                     <div class="grid grid-cols-2 gap-2">
                         <select id="goalType" class="input-field text-xs p-2 bg-slate-700">
@@ -230,7 +235,6 @@
                     <button onclick="saveGoal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition-colors">Set Goal</button>
                 </div>
             </div>
-
         </div>
 
         <div id="tab-report" class="tab-content hidden animate-fade-in">
@@ -294,7 +298,6 @@
     <script>
         let fics = [];
         let readingGoal = { type: 'words', amount: 0 };
-        // Chart instances
         let chartInstances = { fandoms: null, ships: null, tags: null };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -353,6 +356,10 @@
             list.innerHTML = '';
             const search = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('filterStatus').value;
+            // RESTORED FILTER LOGIC
+            const completionFilter = document.getElementById('filterCompletion').value;
+            const coverFilter = document.getElementById('filterCover').value;
+            
             const shipFilter = document.getElementById('filterShips').value;
             const tagFilter = document.getElementById('filterTags').value;
             const chapterFilter = document.getElementById('filterChapters').value;
@@ -361,6 +368,17 @@
             try {
                 let filtered = fics.filter(f => {
                     if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
+                    
+                    // Status Check
+                    if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
+                    
+                    // Cover Check
+                    if (coverFilter !== 'all') {
+                        const hasCover = (f.coverStatus === 'yes');
+                        if (coverFilter === 'yes' && !hasCover) return false;
+                        if (coverFilter === 'not' && hasCover) return false;
+                    }
+
                     if (shipFilter !== 'all' && (!f.ships || !f.ships.includes(shipFilter))) return false;
                     if (tagFilter !== 'all' && (!f.tags || !f.tags.includes(tagFilter))) return false;
                     const chaps = f.chapters || 0;
@@ -525,12 +543,7 @@
                     opt.innerText = y;
                     yearSelect.appendChild(opt);
                 });
-                // Keep previous selection or select latest year
-                if (currentSel && years.includes(parseInt(currentSel))) {
-                    yearSelect.value = currentSel;
-                } else {
-                    yearSelect.value = years[0];
-                }
+                if (currentSel && years.includes(parseInt(currentSel))) { yearSelect.value = currentSel; } else { yearSelect.value = years[0]; }
             }
             renderYearlyStats();
 
@@ -620,7 +633,7 @@
                 currentVal = finishedThisYear.length;
             }
 
-            const target = readingGoal.amount || 1; // Avoid divide by zero visual
+            const target = readingGoal.amount || 1; 
             let pct = Math.round((currentVal / target) * 100);
             if(pct > 100) pct = 100;
 
@@ -673,17 +686,30 @@
         function pickSuggestion(id, selId) { const sel=document.getElementById(selId); const val=sel.value; if(!val)return; const inp=document.getElementById(id); const cur=inp.value.trim(); inp.value=cur.length===0?val:(!cur.includes(val)?cur+', '+val:cur); sel.value=""; }
         function toggleDateVisibility() { const s=document.getElementById('inpReadStatus').value; document.getElementById('divDateFinished').classList.toggle('hidden', s!=='read'); if(s==='read' && !document.getElementById('inpDateFinished').value) document.getElementById('inpDateFinished').valueAsDate = new Date(); }
         function openAddModal() { document.getElementById('ficForm').reset(); document.getElementById('editId').value=''; document.getElementById('modalTitle').innerText='Add New Fic'; document.getElementById('btnDelete').classList.add('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden'); }
+        
         function openEditModal(id) {
             const f=fics.find(x=>x.id===id); if(!f)return;
             document.getElementById('editId').value=f.id; document.getElementById('modalTitle').innerText='Edit Fic';
-            ['inpTitle','inpAuthor','inpFandom','inpLink','inpStatus','inpWords','inpChapters','inpSummary','inpNotes'].forEach(k=>document.getElementById(k).value=f[k.replace('inp','').toLowerCase()]||'');
+            
+            // Standard Fields
+            ['inpTitle','inpAuthor','inpFandom','inpStatus','inpSummary','inpNotes'].forEach(k=>document.getElementById(k).value=f[k.replace('inp','').toLowerCase()]||'');
+            
+            // FIX: Manual Mapping for differing keys
+            document.getElementById('inpLink').value = f.originalLink || '';
+            document.getElementById('inpWords').value = f.wordcount || '';
+            document.getElementById('inpChapters').value = f.chapters || '';
+
+            // Dropdowns
             document.getElementById('inpReadStatus').value=f.rereadStatus||'unread'; document.getElementById('inpCoverStatus').value=f.coverStatus||'not';
             document.getElementById('inpSeries').value=f.series||''; document.getElementById('inpSeriesPart').value=f.seriesPart||'';
             document.getElementById('inpShips').value=(f.ships||[]).join(', '); document.getElementById('inpTags').value=(f.tags||[]).join(', ');
+            
             const dInput = document.getElementById('inpDateFinished');
             if(f.dateFinished) { const d=parseDateLocal(f.dateFinished); dInput.value=d?d.toISOString().split('T')[0]:''; } else dInput.value='';
+            
             document.getElementById('btnDelete').classList.remove('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden');
         }
+
         function closeModal() { document.getElementById('ficModal').classList.add('hidden'); }
         function deleteFic() { if(confirm("Delete this fic?")) { fics=fics.filter(f=>f.id!==document.getElementById('editId').value); saveData(); closeModal(); } }
         function handleFormSubmit(e) {
