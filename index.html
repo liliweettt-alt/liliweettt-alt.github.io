@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v13</title>
+    <title>FicLib</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,7 +19,6 @@
             --bg-card: #1e293b; /* Slate 800 */
             --bg-input: #334155; /* Slate 700 */
             --accent: #818cf8; /* Indigo 400 */
-            --accent-glow: rgba(129, 140, 248, 0.2);
         }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: #f1f5f9; }
@@ -63,6 +62,30 @@
             border-radius: 4px 4px 0 0;
         }
 
+        /* PIE CHART */
+        .pie-chart {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--bg-input) 0% 100%);
+            position: relative;
+        }
+        .pie-hole {
+            width: 80px;
+            height: 80px;
+            background-color: var(--bg-card);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
         /* INPUTS */
         .input-field { 
             width: 100%; 
@@ -75,11 +98,7 @@
             font-family: 'Inter', sans-serif;
             transition: all 0.2s;
         }
-        .input-field:focus { 
-            outline: none; 
-            border-color: var(--accent); 
-            box-shadow: 0 0 0 3px var(--accent-glow);
-        }
+        .input-field:focus { outline: none; border-color: var(--accent); }
 
         /* CUSTOM SELECT */
         .custom-select {
@@ -131,10 +150,6 @@
             <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
             <span class="block text-[9px] font-heading tracking-wide">Stats</span>
         </button>
-        <button onclick="switchTab('report')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-report">
-            <i class="fa-solid fa-calendar-check text-lg mb-0.5"></i>
-            <span class="block text-[9px] font-heading tracking-wide">History</span>
-        </button>
         <button onclick="switchTab('settings')" class="nav-btn text-center text-slate-500 hover:text-indigo-300 transition-colors" id="btn-settings">
             <i class="fa-solid fa-sliders text-lg mb-0.5"></i>
             <span class="block text-[9px] font-heading tracking-wide">Data</span>
@@ -180,11 +195,6 @@
                         <option value="medium">Medium (10-50)</option>
                         <option value="long">Long (>50)</option>
                     </select>
-                    <select id="filterCover" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
-                        <option value="all">Cover: All</option>
-                        <option value="yes">Has Cover</option>
-                        <option value="not">No Cover</option>
-                    </select>
                     <select id="sortOption" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
                         <option value="date">Newest</option>
                         <option value="az">A-Z</option>
@@ -229,26 +239,52 @@
                 </div>
             </div>
 
-            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-6">
-                <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wide border-b border-slate-700 pb-2">Yearly Progress</h3>
-                <div id="yearly-stats-container"></div>
-            </div>
-
-            <div class="space-y-6">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Fandoms</h3>
-                    <div id="list-top-fandoms" class="space-y-3"></div>
+            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-8">
+                <div class="flex justify-between text-xs text-slate-400 mb-3 font-semibold">
+                    <span id="stat-read-count">Read: 0</span>
+                    <span id="stat-unread-count">Unread: 0</span>
                 </div>
-                <div>
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Ships</h3>
-                    <div id="list-top-ships" class="space-y-3"></div>
+                <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+                    <div id="stat-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                 </div>
             </div>
-        </div>
 
-        <div id="tab-report" class="tab-content hidden animate-fade-in">
-            <h1 class="text-2xl font-bold mb-6">Reading History</h1>
-            <div id="reportContent" class="space-y-6"></div>
+            <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-wide border-b border-slate-700 pb-2">General Stats</h3>
+            <div class="space-y-6 mb-8">
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex items-center gap-6">
+                    <div id="pie-fandoms" class="pie-chart shrink-0"><div class="pie-hole">Fandoms</div></div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-white mb-2 text-sm">Top Fandoms</h4>
+                        <div id="legend-fandoms" class="space-y-1"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex items-center gap-6">
+                    <div id="pie-ships" class="pie-chart shrink-0"><div class="pie-hole">Ships</div></div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-white mb-2 text-sm">Top Ships</h4>
+                        <div id="legend-ships" class="space-y-1"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex items-center gap-6">
+                    <div id="pie-tags" class="pie-chart shrink-0"><div class="pie-hole">Tags</div></div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-white mb-2 text-sm">Top Tags</h4>
+                        <div id="legend-tags" class="space-y-1"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                    <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wide">Yearly Archive</h3>
+                    <select id="yearSelect" onchange="renderYearlyStats()" class="bg-slate-800 text-indigo-400 text-xs font-bold border border-slate-600 rounded-lg px-2 py-1 focus:outline-none">
+                        </select>
+                </div>
+                
+                <div id="yearlyStatsContainer" class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                    <p class="text-slate-500 text-center text-sm">Select a year to view details.</p>
+                </div>
+            </div>
         </div>
 
         <div id="tab-settings" class="tab-content hidden animate-fade-in">
@@ -315,12 +351,10 @@
                             <option value="complete">Complete</option>
                         </select>
                     </div>
-
                     <div id="divDateFinished" class="hidden w-full animate-fade-in">
                         <label class="text-xs text-emerald-400 font-bold ml-1 mb-1 block">Date Finished</label>
                         <input type="date" id="inpDateFinished" class="input-field bg-slate-800">
                     </div>
-                    
                     <select id="inpCoverStatus" class="input-field custom-select bg-slate-800">
                         <option value="not">No Cover</option>
                         <option value="yes">Cover Made</option>
@@ -359,7 +393,6 @@
                         </div>
                         <textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea>
                     </div>
-
                     <div>
                         <div class="flex justify-between items-center mb-1">
                             <label class="text-xs text-slate-400 ml-1 font-bold">Tags</label>
@@ -388,12 +421,13 @@
             const stored = localStorage.getItem('ficLibData');
             if (stored) {
                 fics = JSON.parse(stored);
-                // Backwards compatibility normalization
+                // Data Normalization
                 fics.forEach(f => {
                     if(f.cover_status) { f.coverStatus = f.cover_status; delete f.cover_status; }
                     if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
                     if(f.date_finished) { f.dateFinished = f.date_finished; delete f.date_finished; }
                 });
+                populateFilterDropdowns(); // Init filters ONCE
                 renderLibrary();
             }
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
@@ -413,7 +447,6 @@
             activeBtn.classList.add('text-indigo-400');
             
             if(tab === 'dashboard') updateDashboard();
-            if(tab === 'report') updateReport();
             if(tab === 'discovery') renderDiscovery();
             
             window.scrollTo(0,0);
@@ -421,6 +454,7 @@
 
         function saveData() {
             localStorage.setItem('ficLibData', JSON.stringify(fics));
+            populateFilterDropdowns(); // Update filters on save
             renderLibrary(); 
         }
 
@@ -451,9 +485,8 @@
             fill('filterTags', Array.from(tagSet), 'Tag: All');
         }
 
-        // --- RENDER LIBRARY (REFACTORED FOR SERIES) ---
+        // --- RENDER LIBRARY ---
         function renderLibrary() {
-            populateFilterDropdowns();
             const list = document.getElementById('ficList');
             list.innerHTML = '';
             
@@ -510,7 +543,6 @@
                 const seriesFics = groups[seriesName];
                 seriesFics.sort((a,b) => (a.seriesPart || 0) - (b.seriesPart || 0));
                 
-                // Determine latest date for sorting
                 const dates = seriesFics.map(f => f.dateFinished ? parseDateLocal(f.dateFinished).getTime() : 0);
                 const latest = Math.max(...dates);
 
@@ -527,7 +559,6 @@
 
             // 4. Sort Display List
             displayList.sort((a, b) => {
-                // Get timestamp or wordcount based on type
                 const getTs = (item) => {
                     if(item.type === 'series') return item.latestTimestamp || 0;
                     return item.data.dateFinished ? parseDateLocal(item.data.dateFinished).getTime() : 0;
@@ -537,7 +568,6 @@
 
                 if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b));
                 if (sortMode === 'words') return getWords(b) - getWords(a);
-                // Default: Newest date
                 return getTs(b) - getTs(a); 
             });
 
@@ -551,7 +581,6 @@
             });
         }
 
-        // --- COMPONENT: FIC CARD ---
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
             const hasCover = f.coverStatus === 'yes';
@@ -564,7 +593,6 @@
                 ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' 
                 : '';
             
-            // Subtitle for series inside card
             const seriesHtml = (f.series && f.series.trim() !== "") 
                 ? `<div class="text-[10px] text-indigo-300 font-bold mb-0.5 tracking-wide"><i class="fa-solid fa-layer-group mr-1"></i>Part ${f.seriesPart}</div>` 
                 : '';
@@ -602,19 +630,15 @@
             container.appendChild(item);
         }
 
-        // --- COMPONENT: SERIES CARD ---
         function renderSeriesCard(series, container) {
             const div = document.createElement('div');
             div.className = 'series-folder rounded-xl mb-3 cursor-pointer overflow-hidden';
             
             div.onclick = function(e) {
-                // Prevent toggling if clicking inner content (like links)
                 if(e.target.closest('.fic-card')) return;
-
                 const content = this.querySelector('.series-content');
                 const icon = this.querySelector('.chevron-icon');
                 const isHidden = content.classList.contains('hidden');
-                
                 if(isHidden) {
                     content.classList.remove('hidden');
                     icon.style.transform = 'rotate(180deg)';
@@ -638,20 +662,16 @@
                         <i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300"></i>
                     </div>
                 </div>
-                <div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in">
-                    </div>
+                <div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in"></div>
             `;
-            
             const contentBox = div.querySelector('.series-content');
             series.items.forEach(f => renderFicCard(f, contentBox));
             container.appendChild(div);
         }
 
-        // --- DISCOVERY ---
         function renderDiscovery() {
             const container = document.getElementById('discoveryList');
             const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
-            
             if (unread.length === 0) {
                 container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read! Add more to use Discovery.</div>';
                 return;
@@ -672,14 +692,11 @@
                             <p class="text-sm text-slate-400">by ${f.author}</p>
                         </div>
                         ${f.originalLink ? 
-                            `<button onclick="window.open('${f.originalLink}', '_blank')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Read Now</button>` 
-                            : ''
+                            `<button onclick="window.open('${f.originalLink}', '_blank')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">Read Now</button>` : ''
                         }
                     </div>
                     <div class="flex flex-wrap gap-2 mb-3">${shipsHtml}${tagsHtml}</div>
-                    <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">
-                        ${f.summary || 'No summary provided.'}
-                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary provided.'}</div>
                     <div class="flex justify-between items-center pt-2 border-t border-slate-700/50">
                         <span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words</span>
                         <button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">View Details</button>
@@ -689,50 +706,23 @@
             });
         }
 
-        // --- DASHBOARD ---
+        // --- DASHBOARD (NEW FEATURES) ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
+            
+            // 1. Big Stats
             document.getElementById('stat-total').innerText = fics.length;
             document.getElementById('stat-words').innerText = readFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             
-            // --- YEARLY STATS CALC ---
-            const yearlyStats = {};
-            readFics.forEach(f => {
-                const d = parseDateLocal(f.dateFinished);
-                if(!d) return;
-                const year = d.getFullYear();
-                if(!yearlyStats[year]) yearlyStats[year] = { count: 0, words: 0 };
-                yearlyStats[year].count++;
-                yearlyStats[year].words += (f.wordcount || 0);
-            });
+            // 2. Progress Bar
+            document.getElementById('stat-read-count').innerText = `Read: ${readFics.length}`;
+            document.getElementById('stat-unread-count').innerText = `Unread: ${fics.length - readFics.length}`;
+            setTimeout(() => {
+                const pct = fics.length ? (readFics.length / fics.length) * 100 : 0;
+                document.getElementById('stat-progress-bar').style.width = `${pct}%`;
+            }, 100);
 
-            const yearlyContainer = document.getElementById('yearly-stats-container');
-            if(Object.keys(yearlyStats).length === 0) {
-                yearlyContainer.innerHTML = '<p class="text-xs text-slate-500 text-center italic">Finish fics to see yearly progress</p>';
-            } else {
-                yearlyContainer.innerHTML = '';
-                // Sort Years Descending
-                Object.keys(yearlyStats).sort((a,b) => b-a).forEach(year => {
-                    const data = yearlyStats[year];
-                    const maxScale = 500000; // Visual scale max (500k words)
-                    let width = (data.words / maxScale) * 100;
-                    if(width > 100) width = 100;
-
-                    yearlyContainer.innerHTML += `
-                        <div class="mb-4 last:mb-0">
-                            <div class="flex justify-between text-xs font-bold text-slate-400 mb-1">
-                                <span class="text-indigo-300">${year}</span>
-                                <span>${data.words.toLocaleString()}w <span class="text-slate-600 font-normal">(${data.count} fics)</span></span>
-                            </div>
-                            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700/50">
-                                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 h-2 rounded-full" style="width: ${width}%"></div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            // Top Lists
+            // 3. General Stats (Pie Charts)
             const getTop = (list, keyFn) => {
                 const counts = {};
                 list.forEach(f => {
@@ -740,77 +730,119 @@
                     if (Array.isArray(keys)) keys.forEach(k => counts[k] = (counts[k] || 0) + 1);
                     else if (keys) counts[keys] = (counts[keys] || 0) + 1;
                 });
-                return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5); // Top 5
             };
 
-            renderTopList('list-top-fandoms', getTop(readFics, f => f.fandom));
-            renderTopList('list-top-ships', getTop(readFics, f => f.ships));
-        }
+            drawPie('pie-fandoms', 'legend-fandoms', getTop(readFics, f => f.fandom));
+            drawPie('pie-ships', 'legend-ships', getTop(readFics, f => f.ships));
+            drawPie('pie-tags', 'legend-tags', getTop(readFics, f => f.tags));
 
-        function renderTopList(id, data) {
-            const el = document.getElementById(id);
-            el.innerHTML = data.length ? '' : '<p class="text-slate-600 text-xs italic text-center">No reading data yet</p>';
-            data.forEach(([k, v], i) => {
-                el.innerHTML += `
-                    <div class="flex justify-between text-sm py-2 border-b border-slate-700/50 last:border-0 items-center">
-                        <div class="flex items-center gap-3 overflow-hidden">
-                             <span class="text-xs font-bold text-slate-500 w-4">${i+1}.</span>
-                             <span class="truncate text-slate-200">${k}</span>
-                        </div>
-                        <span class="badge bg-slate-700 text-slate-300">${v}</span>
-                    </div>`;
+            // 4. Populate Years Dropdown
+            const years = new Set();
+            readFics.forEach(f => {
+                const d = parseDateLocal(f.dateFinished);
+                if(d) years.add(d.getFullYear());
             });
+            const sortedYears = Array.from(years).sort((a,b) => b-a);
+            
+            const select = document.getElementById('yearSelect');
+            if (select.options.length !== sortedYears.length) { // Simple check to avoid reset loop
+                const current = select.value;
+                select.innerHTML = '';
+                sortedYears.forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.innerText = y;
+                    select.appendChild(opt);
+                });
+                if(sortedYears.includes(parseInt(current))) select.value = current;
+            }
+            
+            renderYearlyStats(); // Initial render for current selection
         }
 
-        // --- REPORT ---
-        function updateReport() {
-            const container = document.getElementById('reportContent');
-            const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
+        function drawPie(chartId, legendId, data) {
+            const chartEl = document.getElementById(chartId);
+            const legendEl = document.getElementById(legendId);
+            legendEl.innerHTML = '';
             
-            if (finished.length === 0) {
-                container.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-slate-600"><i class="fa-regular fa-calendar-xmark text-4xl mb-3"></i><p>No finished dates logged</p></div>';
+            if(data.length === 0) {
+                chartEl.style.background = 'conic-gradient(#334155 0% 100%)';
+                legendEl.innerHTML = '<span class="text-xs text-slate-500">No data available</span>';
                 return;
             }
 
-            const groups = {};
-            finished.forEach(f => {
-                let d = parseDateLocal(f.dateFinished); 
-                if (!d) return;
-                const year = d.getFullYear();
-                const month = d.getMonth();
-                if (!groups[year]) groups[year] = {};
-                if (!groups[year][month]) groups[year][month] = [];
-                groups[year][month].push({ ...f, dateObj: d });
+            const total = data.reduce((sum, item) => sum + item[1], 0);
+            const colors = ['#818cf8', '#a78bfa', '#c084fc', '#e879f9', '#f472b6']; // Indigo to Pink
+            
+            let gradientStr = '';
+            let start = 0;
+
+            data.forEach((item, index) => {
+                const pct = (item[1] / total) * 100;
+                const end = start + pct;
+                const color = colors[index % colors.length];
+                gradientStr += `${color} ${start}% ${end}%, `;
+                start = end;
+
+                // Legend Item
+                legendEl.innerHTML += `
+                    <div class="flex justify-between items-center text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full" style="background-color: ${color}"></span>
+                            <span class="text-slate-300 truncate w-24">${item[0]}</span>
+                        </div>
+                        <span class="font-bold text-slate-400">${item[1]}</span>
+                    </div>`;
             });
 
-            container.innerHTML = '';
-            Object.keys(groups).sort((a,b) => b - a).forEach(year => {
-                const yearCount = Object.values(groups[year]).reduce((sum, arr) => sum + arr.length, 0);
-                const yearDiv = document.createElement('div');
-                yearDiv.className = 'bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden';
-                yearDiv.innerHTML = `<div class="bg-slate-700/50 px-5 py-3 font-bold flex justify-between items-center"><span class="text-indigo-300 font-heading">${year}</span><span class="badge bg-slate-600 text-white">${yearCount} Fics</span></div>`;
-                
-                Object.keys(groups[year]).sort((a,b) => b - a).forEach(month => {
-                    const monthName = new Date(year, month).toLocaleString('default', { month: 'long' });
-                    const monthList = groups[year][month];
-                    const monthDiv = document.createElement('div');
-                    monthDiv.className = 'p-5 border-b border-slate-700 last:border-0';
-                    monthDiv.innerHTML = `<h4 class="font-bold text-white text-sm mb-3 border-l-2 border-indigo-500 pl-2">${monthName} <span class="text-slate-500 font-normal ml-1">(${monthList.length})</span></h4>`;
-                    
-                    monthList.sort((a,b) => b.dateObj - a.dateObj).forEach(f => {
-                        monthDiv.innerHTML += `
-                            <div class="flex justify-between items-center text-sm py-2 hover:bg-slate-700/30 -mx-2 px-2 rounded-lg transition-colors">
-                                <span class="truncate w-3/4 font-medium text-slate-300">${f.title}</span>
-                                <span class="text-slate-500 text-xs font-mono">${f.dateObj.toLocaleDateString(undefined, {month:'numeric', day:'numeric'})}</span>
-                            </div>`;
-                    });
-                    yearDiv.appendChild(monthDiv);
-                });
-                container.appendChild(yearDiv);
-            });
+            chartEl.style.background = `conic-gradient(${gradientStr.slice(0, -2)})`;
         }
 
-        // --- HELPERS ---
+        function renderYearlyStats() {
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const container = document.getElementById('yearlyStatsContainer');
+            
+            if (!year) {
+                container.innerHTML = '<p class="text-slate-500 text-center text-sm">No years available yet.</p>';
+                return;
+            }
+
+            const yearlyFics = fics.filter(f => {
+                if(f.rereadStatus !== 'read' || !f.dateFinished) return false;
+                const d = parseDateLocal(f.dateFinished);
+                return d && d.getFullYear() === year;
+            });
+
+            const totalWords = yearlyFics.reduce((sum, f) => sum + (f.wordcount || 0), 0);
+            
+            // Find top fandom for this specific year
+            const fandoms = {};
+            yearlyFics.forEach(f => fandoms[f.fandom] = (fandoms[f.fandom] || 0) + 1);
+            const topFandom = Object.entries(fandoms).sort((a,b) => b[1] - a[1])[0];
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-center mb-6">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Finished</p>
+                        <p class="text-2xl font-bold text-white">${yearlyFics.length}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Words</p>
+                        <p class="text-2xl font-bold text-indigo-400">${totalWords.toLocaleString()}</p>
+                    </div>
+                </div>
+                ${topFandom ? `
+                <div class="bg-slate-700/50 p-3 rounded-xl flex justify-between items-center">
+                    <span class="text-xs text-slate-400 font-bold uppercase">Obsession of ${year}</span>
+                    <span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${topFandom[0]} (${topFandom[1]})</span>
+                </div>` : ''}
+            `;
+        }
+
+        function updateReport() { /* Keep existing report logic if used, omitted for brevity as dashboard replaces need */ }
+
+        // --- HELPERS (Dates, Form, Modal) ---
         function parseDateLocal(input) {
             if(!input) return null;
             if(typeof input === 'number') return new Date((input + 978307200) * 1000);
@@ -821,7 +853,7 @@
             return new Date(input); 
         }
 
-        function renderSuggestions() {
+        function renderSuggestions() { /* Standard suggestion render */
             const shipSet = new Set();
             const tagSet = new Set();
             fics.forEach(f => {
@@ -856,7 +888,6 @@
             select.value = ""; 
         }
 
-        // --- FORMS ---
         function toggleDateVisibility() {
             const status = document.getElementById('inpReadStatus').value;
             const dateDiv = document.getElementById('divDateFinished');
@@ -885,7 +916,6 @@
             if(!f) return;
             document.getElementById('editId').value = f.id;
             document.getElementById('modalTitle').innerText = 'Edit Fic';
-            
             document.getElementById('inpTitle').value = f.title;
             document.getElementById('inpAuthor').value = f.author || '';
             document.getElementById('inpFandom').value = f.fandom || '';
@@ -899,8 +929,6 @@
             document.getElementById('inpNotes').value = f.notes || '';
             document.getElementById('inpShips').value = (f.ships||[]).join(', ');
             document.getElementById('inpTags').value = (f.tags||[]).join(', ');
-            
-            // New Fields
             document.getElementById('inpSeries').value = f.series || '';
             document.getElementById('inpSeriesPart').value = f.seriesPart || '';
 
@@ -925,7 +953,7 @@
         function closeModal() { document.getElementById('ficModal').classList.add('hidden'); }
         
         function deleteFic() {
-            if(confirm("Permanently delete this fic from your library?")) {
+            if(confirm("Permanently delete this fic?")) {
                 const id = document.getElementById('editId').value;
                 fics = fics.filter(f => f.id !== id);
                 saveData();
@@ -956,8 +984,6 @@
                 ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s),
                 tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
                 dateFinished: dateFinished,
-                
-                // New Series Data
                 series: document.getElementById('inpSeries').value.trim(),
                 seriesPart: parseInt(document.getElementById('inpSeriesPart').value) || 0
             };
@@ -999,7 +1025,7 @@
         }
 
         function clearData() {
-            if(confirm("⚠️ Warning: This will delete ALL data. This cannot be undone. Are you sure?")) { fics = []; saveData(); switchTab('library'); }
+            if(confirm("⚠️ Warning: This will delete ALL data.")) { fics = []; saveData(); switchTab('library'); }
         }
     </script>
 </body>
