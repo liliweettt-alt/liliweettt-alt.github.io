@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v15</title>
+    <title>FicLib Tracker v17</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -167,7 +167,22 @@
                 </div>
             </div>
 
-            <div class="mb-6">
+            <div class="space-y-6 mb-8">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms (All Time)</h3>
+                    <div class="h-48 relative"><canvas id="chartFandoms"></canvas></div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships (All Time)</h3>
+                    <div class="h-48 relative"><canvas id="chartShips"></canvas></div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags (All Time)</h3>
+                    <div class="h-48 relative"><canvas id="chartTags"></canvas></div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-700 pt-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-bold text-white">Yearly Breakdown</h3>
                     <select id="yearSelector" class="bg-slate-800 border border-slate-700 text-indigo-400 text-xs rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="renderYearlyStats()">
@@ -187,20 +202,35 @@
                 </div>
             </div>
 
-            <div class="space-y-6">
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms</h3>
-                    <div class="h-48 relative"><canvas id="chartFandoms"></canvas></div>
+            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mt-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wide" id="goalTitleYear">Reading Goal</h3>
+                    <button onclick="toggleGoalEdit()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i> Edit</button>
                 </div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships</h3>
-                    <div class="h-48 relative"><canvas id="chartShips"></canvas></div>
+
+                <div id="goalDisplay">
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span id="goalTextCurrent" class="font-mono text-white">0</span>
+                        <span id="goalTextTarget" class="font-mono">/ 0</span>
+                    </div>
+                    <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner relative">
+                        <div id="goalProgressBar" class="bg-gradient-to-r from-emerald-600 to-teal-400 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-slate-900" style="width: 0%">0%</div>
+                    </div>
+                    <p id="goalMessage" class="text-center text-[10px] text-slate-500 mt-2 italic">Set a goal to start tracking!</p>
                 </div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags</h3>
-                    <div class="h-48 relative"><canvas id="chartTags"></canvas></div>
+
+                <div id="goalEditor" class="hidden space-y-3 mt-4 border-t border-slate-700 pt-3 animate-fade-in">
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="goalType" class="input-field text-xs p-2 bg-slate-700">
+                            <option value="words">Word Count</option>
+                            <option value="fics">Fics Read</option>
+                        </select>
+                        <input type="number" id="goalNumber" placeholder="Target Amount" class="input-field text-xs p-2 bg-slate-700">
+                    </div>
+                    <button onclick="saveGoal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition-colors">Set Goal</button>
                 </div>
             </div>
+
         </div>
 
         <div id="tab-report" class="tab-content hidden animate-fade-in">
@@ -263,11 +293,14 @@
 
     <script>
         let fics = [];
+        let readingGoal = { type: 'words', amount: 0 };
         // Chart instances
         let chartInstances = { fandoms: null, ships: null, tags: null };
 
         document.addEventListener('DOMContentLoaded', () => {
             const stored = localStorage.getItem('ficLibData');
+            const storedGoal = localStorage.getItem('ficLibGoal');
+            
             if (stored) {
                 try {
                     fics = JSON.parse(stored);
@@ -279,8 +312,12 @@
                 } catch(e) { console.error("Data load error", e); fics = []; }
                 renderLibrary();
             }
+            if (storedGoal) {
+                try { readingGoal = JSON.parse(storedGoal); } catch(e) { console.error(e); }
+            }
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
             document.getElementById('ficForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('goalTitleYear').innerText = `${new Date().getFullYear()} Reading Goal`;
         });
 
         function switchTab(tab) {
@@ -501,6 +538,9 @@
             renderPieChart('chartFandoms', readFics, f => f.fandom, 'fandoms');
             renderPieChart('chartShips', readFics, f => f.ships, 'ships');
             renderPieChart('chartTags', readFics, f => f.tags, 'tags');
+
+            // 5. Update Reading Goal
+            updateGoalUI();
         }
 
         function renderYearlyStats() {
@@ -529,47 +569,76 @@
                 if (Array.isArray(keys)) keys.forEach(k => counts[k] = (counts[k] || 0) + 1);
                 else if (keys) counts[keys] = (counts[keys] || 0) + 1;
             });
-            
-            // Sort and take top 5
             const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
             const labels = sorted.map(x => x[0]);
             const data = sorted.map(x => x[1]);
-
-            // Chart Colors
-            const colors = [
-                '#818cf8', // Indigo 400
-                '#a78bfa', // Violet 400
-                '#c084fc', // Purple 400
-                '#6366f1', // Indigo 500
-                '#94a3b8'  // Slate 400
-            ];
-
+            const colors = ['#818cf8', '#a78bfa', '#c084fc', '#6366f1', '#94a3b8'];
             const ctx = document.getElementById(canvasId).getContext('2d');
-            
-            // Destroy existing chart to prevent glitch
-            if (chartInstances[instanceName]) {
-                chartInstances[instanceName].destroy();
-            }
-
+            if (chartInstances[instanceName]) chartInstances[instanceName].destroy();
             chartInstances[instanceName] = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: colors,
-                        borderColor: '#1e293b',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } }
-                    }
-                }
+                data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#1e293b', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } } } }
             });
+        }
+
+        // --- READING GOAL LOGIC ---
+        function toggleGoalEdit() {
+            const editor = document.getElementById('goalEditor');
+            editor.classList.toggle('hidden');
+            if(!editor.classList.contains('hidden')) {
+                document.getElementById('goalType').value = readingGoal.type;
+                document.getElementById('goalNumber').value = readingGoal.amount || '';
+            }
+        }
+
+        function saveGoal() {
+            const type = document.getElementById('goalType').value;
+            const amount = parseInt(document.getElementById('goalNumber').value);
+            if(amount > 0) {
+                readingGoal = { type, amount };
+                localStorage.setItem('ficLibGoal', JSON.stringify(readingGoal));
+                toggleGoalEdit();
+                updateGoalUI();
+            } else {
+                alert("Please enter a valid number.");
+            }
+        }
+
+        function updateGoalUI() {
+            const currentYear = new Date().getFullYear();
+            const finishedThisYear = fics.filter(f => {
+                if(f.rereadStatus !== 'read') return false;
+                const d = parseDateLocal(f.dateFinished);
+                return d && d.getFullYear() === currentYear;
+            });
+
+            let currentVal = 0;
+            if (readingGoal.type === 'words') {
+                currentVal = finishedThisYear.reduce((s, f) => s + (f.wordcount || 0), 0);
+            } else {
+                currentVal = finishedThisYear.length;
+            }
+
+            const target = readingGoal.amount || 1; // Avoid divide by zero visual
+            let pct = Math.round((currentVal / target) * 100);
+            if(pct > 100) pct = 100;
+
+            document.getElementById('goalTextCurrent').innerText = currentVal.toLocaleString();
+            document.getElementById('goalTextTarget').innerText = `/ ${target.toLocaleString()} ${readingGoal.type}`;
+            
+            const bar = document.getElementById('goalProgressBar');
+            bar.style.width = `${pct}%`;
+            bar.innerText = `${pct}%`;
+
+            const msg = document.getElementById('goalMessage');
+            if(currentVal >= target && target > 1) {
+                msg.innerText = "🎉 Goal Reached! Amazing!";
+                msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold";
+            } else {
+                msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`;
+                msg.className = "text-center text-[10px] text-slate-500 mt-2 italic";
+            }
         }
 
         // --- HISTORY REPORT ---
