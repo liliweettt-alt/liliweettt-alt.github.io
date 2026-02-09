@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v19</title>
+    <title>FicLib Tracker v20</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -40,7 +40,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
             border: 1px solid rgba(255,255,255,0.05);
         }
-        .fic-card:active { transform: scale(0.98); }
+        .fic-card:active { transform: scale(0.99); }
 
         /* SERIES FOLDER */
         .series-folder {
@@ -103,21 +103,38 @@
         
         <div id="tab-library" class="tab-content">
             <div class="flex justify-between items-center mb-6">
-                <div><h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">FicLib</h1><p class="text-slate-400 text-xs mt-1">Your reading universe</p></div>
-                <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white w-10 h-10 rounded-full shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all transform hover:scale-105"><i class="fa-solid fa-plus text-lg"></i></button>
+                <div>
+                    <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">FicLib</h1>
+                    <p class="text-slate-400 text-xs mt-1">Your reading universe</p>
+                </div>
+                <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white w-10 h-10 rounded-full shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all transform hover:scale-105">
+                    <i class="fa-solid fa-plus text-lg"></i>
+                </button>
             </div>
+
             <div class="space-y-3 mb-6">
-                <div class="relative"><i class="fa-solid fa-search absolute left-3 top-3.5 text-slate-500 text-sm"></i><input type="text" id="searchInput" placeholder="Search title, series, tags..." class="input-field pl-9" onkeyup="renderLibrary()"></div>
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-3 top-3.5 text-slate-500 text-sm"></i>
+                    <input type="text" id="searchInput" placeholder="Search title, series, tags..." class="input-field pl-9" onkeyup="renderLibrary()">
+                </div>
+                
                 <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                    <select id="filterStatus" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Reading: All</option><option value="read">Read</option><option value="unread">Unread</option></select>
+                    <select id="filterStatus" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="all">Reading: All</option><option value="read">Read</option><option value="unread">Unread</option>
+                    </select>
                     <select id="filterCompletion" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Status: All</option><option value="complete">Complete</option><option value="wip">WIP</option></select>
                     <select id="filterCover" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Cover: All</option><option value="yes">Has Cover</option><option value="not">No Cover</option></select>
                     <select id="filterShips" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Ship: All</option></select>
                     <select id="filterTags" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Tag: All</option></select>
-                    <select id="filterChapters" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Length: Any</option><option value="short">Short (<10)</option><option value="medium">Medium (10-50)</option><option value="long">Long (>50)</option></select>
-                    <select id="sortOption" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="date">Newest</option><option value="az">A-Z</option><option value="words">Word Count</option></select>
+                    <select id="filterChapters" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="all">Length: Any</option><option value="short">Short (<10)</option><option value="medium">Medium (10-50)</option><option value="long">Long (>50)</option>
+                    </select>
+                    <select id="sortOption" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                        <option value="date">Newest</option><option value="az">A-Z</option><option value="words">Word Count</option>
+                    </select>
                 </div>
             </div>
+
             <div id="ficList" class="space-y-3"></div>
         </div>
 
@@ -131,6 +148,7 @@
 
         <div id="tab-dashboard" class="tab-content hidden animate-fade-in">
             <h1 class="text-2xl font-bold mb-6">Global Stats</h1>
+            
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
                     <div class="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400"><i class="fa-solid fa-book-open"></i></div>
@@ -141,36 +159,84 @@
                     <p class="text-slate-400 text-[10px] uppercase font-bold">Total Fics in List</p><p class="text-xl font-bold text-white mt-1" id="stat-total">0</p>
                 </div>
             </div>
+
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-6">
-                <div class="flex justify-between text-xs text-slate-400 mb-3 font-semibold"><span id="stat-read-count">Read: 0</span><span id="stat-unread-count">Unread: 0</span></div>
-                <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner"><div id="stat-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-white" style="width: 0%">0%</div></div>
-            </div>
-            <div class="space-y-6 mb-8">
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms (All Time)</h3><div class="h-48 relative"><canvas id="chartFandoms"></canvas></div></div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships (All Time)</h3><div class="h-48 relative"><canvas id="chartShips"></canvas></div></div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags (All Time)</h3><div class="h-48 relative"><canvas id="chartTags"></canvas></div></div>
-            </div>
-            <div class="border-t border-slate-700 pt-6">
-                <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold text-white">Yearly Breakdown</h3><select id="yearSelector" class="bg-slate-800 border border-slate-700 text-indigo-400 text-xs rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="renderYearlyStats()"></select></div>
-                <div id="yearStatsContainer" class="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl flex justify-around items-center">
-                    <div class="text-center"><p class="text-xs text-slate-500 uppercase">Words</p><p class="text-xl font-bold text-white" id="year-stat-words">0</p></div><div class="h-10 w-px bg-slate-700"></div><div class="text-center"><p class="text-xs text-slate-500 uppercase">Fics Finished</p><p class="text-xl font-bold text-white" id="year-stat-count">0</p></div>
+                <div class="flex justify-between text-xs text-slate-400 mb-3 font-semibold">
+                    <span id="stat-read-count">Read: 0</span>
+                    <span id="stat-unread-count">Unread: 0</span>
+                </div>
+                <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner">
+                    <div id="stat-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-white" style="width: 0%">0%</div>
                 </div>
             </div>
+
+            <div class="space-y-6 mb-8">
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms (All Time)</h3>
+                    <div class="h-48 relative"><canvas id="chartFandoms"></canvas></div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships (All Time)</h3>
+                    <div class="h-48 relative"><canvas id="chartShips"></canvas></div>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags (All Time)</h3>
+                    <div class="h-48 relative"><canvas id="chartTags"></canvas></div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-700 pt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-white">Yearly Breakdown</h3>
+                    <select id="yearSelector" class="bg-slate-800 border border-slate-700 text-indigo-400 text-xs rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="renderYearlyStats()">
+                        </select>
+                </div>
+                
+                <div id="yearStatsContainer" class="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl flex justify-around items-center">
+                    <div class="text-center">
+                        <p class="text-xs text-slate-500 uppercase">Words</p>
+                        <p class="text-xl font-bold text-white" id="year-stat-words">0</p>
+                    </div>
+                    <div class="h-10 w-px bg-slate-700"></div>
+                    <div class="text-center">
+                        <p class="text-xs text-slate-500 uppercase">Fics Finished</p>
+                        <p class="text-xl font-bold text-white" id="year-stat-count">0</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mt-6">
-                <div class="flex justify-between items-center mb-3"><h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wide" id="goalTitleYear">Reading Goal</h3><button onclick="toggleGoalEdit()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i> Edit</button></div>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wide" id="goalTitleYear">Reading Goal</h3>
+                    <button onclick="toggleGoalEdit()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i> Edit</button>
+                </div>
                 <div id="goalDisplay">
-                    <div class="flex justify-between text-xs text-slate-400 mb-1"><span id="goalTextCurrent" class="font-mono text-white">0</span><span id="goalTextTarget" class="font-mono">/ 0</span></div>
-                    <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner relative"><div id="goalProgressBar" class="bg-gradient-to-r from-emerald-600 to-teal-400 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-slate-900" style="width: 0%">0%</div></div>
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span id="goalTextCurrent" class="font-mono text-white">0</span>
+                        <span id="goalTextTarget" class="font-mono">/ 0</span>
+                    </div>
+                    <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner relative">
+                        <div id="goalProgressBar" class="bg-gradient-to-r from-emerald-600 to-teal-400 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-slate-900" style="width: 0%">0%</div>
+                    </div>
                     <p id="goalMessage" class="text-center text-[10px] text-slate-500 mt-2 italic">Set a goal to start tracking!</p>
                 </div>
                 <div id="goalEditor" class="hidden space-y-3 mt-4 border-t border-slate-700 pt-3 animate-fade-in">
-                    <div class="grid grid-cols-2 gap-2"><select id="goalType" class="input-field text-xs p-2 bg-slate-700"><option value="words">Word Count</option><option value="fics">Fics Read</option></select><input type="number" id="goalNumber" placeholder="Target Amount" class="input-field text-xs p-2 bg-slate-700"></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="goalType" class="input-field text-xs p-2 bg-slate-700">
+                            <option value="words">Word Count</option>
+                            <option value="fics">Fics Read</option>
+                        </select>
+                        <input type="number" id="goalNumber" placeholder="Target Amount" class="input-field text-xs p-2 bg-slate-700">
+                    </div>
                     <button onclick="saveGoal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition-colors">Set Goal</button>
                 </div>
             </div>
         </div>
 
-        <div id="tab-report" class="tab-content hidden animate-fade-in"><h1 class="text-2xl font-bold mb-6">Reading History</h1><div id="reportContent" class="space-y-6"></div></div>
+        <div id="tab-report" class="tab-content hidden animate-fade-in">
+            <h1 class="text-2xl font-bold mb-6">Reading History</h1>
+            <div id="reportContent" class="space-y-6"></div>
+        </div>
 
         <div id="tab-settings" class="tab-content hidden animate-fade-in">
             <h1 class="text-2xl font-bold mb-6">Data Management</h1>
@@ -381,7 +447,6 @@
             }
         }
 
-        // --- NEW TIME CALC HELPER ---
         function calculateTime(words) {
             if(!words) return "";
             const wpm = parseInt(localStorage.getItem('ficLibWPM')) || 250;
@@ -391,39 +456,50 @@
             return h > 0 ? `${h}h ${m}m` : `${m}min`;
         }
 
+        // --- NEW RENDER CARD with EXPANDABLE SUMMARY ---
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
             const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
             const statusBadge = isComplete ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
             const coverBadge = f.coverStatus === 'yes' ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' : '';
             const seriesHtml = (f.series && f.series.trim() !== "") ? `<div class="text-[10px] text-indigo-300 font-bold mb-0.5 tracking-wide"><i class="fa-solid fa-layer-group mr-1"></i>Part ${f.seriesPart}</div>` : '';
-            
-            // TROPE HIERARCHY: CWs first, Tags later
             const cwHtml = (f.cws || []).map(c => `<span class="cw-chip" title="Content Warning">${c}</span>`).join('');
             const shipHtml = (f.ships || []).length > 0 ? `<span class="text-indigo-400 text-xs font-bold mr-2"><i class="fa-solid fa-heart mr-1"></i>${f.ships[0]}</span>` : '';
-            
-            // Time to Read
             const readTime = calculateTime(f.wordcount);
+            
+            // Unique ID for toggle
+            const summaryId = `sum-${f.id}`;
+            const hasSummary = f.summary && f.summary.trim() !== "";
+            const toggleBtn = hasSummary ? `<button onclick="event.stopPropagation(); document.getElementById('${summaryId}').classList.toggle('hidden')" class="text-slate-500 hover:text-white transition-colors p-1"><i class="fa-solid fa-chevron-down"></i></button>` : '';
 
             const item = document.createElement('div');
-            item.className = 'fic-card p-4 rounded-xl flex justify-between cursor-pointer relative group mb-3';
-            item.onclick = () => openEditModal(f.id);
+            item.className = 'fic-card p-4 rounded-xl relative group mb-3';
+            item.onclick = (e) => { if(!e.target.closest('button')) openEditModal(f.id); };
+            
             item.innerHTML = `
-                <div class="flex-1 min-w-0 pr-3">
-                    <div class="flex items-start justify-between"><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1 truncate max-w-[120px]">${f.fandom || 'No Fandom'}</span></div>
-                    ${seriesHtml}
-                    <h3 class="font-bold text-lg text-white truncate leading-tight mt-0.5 mb-0.5">${f.title}</h3>
-                    <p class="text-xs text-slate-400 mb-2 truncate">${f.author || 'Unknown'}</p>
-                    <div class="flex flex-wrap items-center gap-2 mb-1">${statusBadge} ${coverBadge} ${isRead ? '<span class="text-emerald-400 text-xs"><i class="fa-solid fa-check"></i> Read</span>' : ''}</div>
-                    <div class="mt-2 flex flex-wrap gap-y-1">${cwHtml} ${shipHtml}</div>
-                </div>
-                <div class="flex flex-col items-end justify-between pl-2 min-w-[75px] border-l border-slate-700/50 my-1">
-                    ${f.originalLink ? `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : '<div class="h-6"></div>'}
-                    <div class="text-[10px] text-slate-500 text-right font-mono mt-auto">
-                        <span class="block text-white font-bold">${readTime}</span>
-                        <span class="block">${(f.wordcount||0).toLocaleString()}w</span>
-                        ${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}
+                <div class="flex justify-between">
+                    <div class="flex-1 min-w-0 pr-3">
+                        <div class="flex items-start justify-between"><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1 truncate max-w-[120px]">${f.fandom || 'No Fandom'}</span></div>
+                        ${seriesHtml}
+                        <h3 class="font-bold text-lg text-white truncate leading-tight mt-0.5 mb-0.5">${f.title}</h3>
+                        <p class="text-xs text-slate-400 mb-2 truncate">${f.author || 'Unknown'}</p>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">${statusBadge} ${coverBadge} ${isRead ? '<span class="text-emerald-400 text-xs"><i class="fa-solid fa-check"></i> Read</span>' : ''}</div>
+                        <div class="mt-2 flex flex-wrap gap-y-1">${cwHtml} ${shipHtml}</div>
                     </div>
+                    <div class="flex flex-col items-end justify-between pl-2 min-w-[75px] border-l border-slate-700/50 my-1">
+                        <div class="flex flex-col items-end gap-2">
+                            ${f.originalLink ? `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : ''}
+                            ${toggleBtn}
+                        </div>
+                        <div class="text-[10px] text-slate-500 text-right font-mono mt-auto">
+                            <span class="block text-white font-bold">${readTime}</span>
+                            <span class="block">${(f.wordcount||0).toLocaleString()}w</span>
+                            ${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <div id="${summaryId}" class="hidden mt-3 pt-3 border-t border-slate-700/50 text-sm text-slate-300 italic leading-relaxed animate-fade-in">
+                    ${f.summary}
                 </div>`;
             container.appendChild(item);
         }
@@ -462,7 +538,6 @@
             unread.sort(() => 0.5 - Math.random()).slice(0, 5).forEach(f => {
                 const card = document.createElement('div');
                 card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
-                // Show CWs here too
                 const cwHtml = (f.cws || []).map(c => `<span class="cw-chip">${c}</span>`).join('');
                 
                 card.innerHTML = `
@@ -568,17 +643,13 @@
             const f=fics.find(x=>x.id===id); if(!f)return;
             document.getElementById('editId').value=f.id; document.getElementById('modalTitle').innerText='Edit Fic';
             ['inpTitle','inpAuthor','inpFandom','inpStatus','inpSummary','inpNotes'].forEach(k=>document.getElementById(k).value=f[k.replace('inp','').toLowerCase()]||'');
-            
-            // KEY FIXES: Correct field names
             document.getElementById('inpLink').value = f.originalLink || '';
             document.getElementById('inpWords').value = f.wordcount || '';
             document.getElementById('inpChapters').value = f.chapters || '';
-            
             document.getElementById('inpReadStatus').value=f.rereadStatus||'unread'; document.getElementById('inpCoverStatus').value=f.coverStatus||'not';
             document.getElementById('inpSeries').value=f.series||''; document.getElementById('inpSeriesPart').value=f.seriesPart||'';
             document.getElementById('inpShips').value=(f.ships||[]).join(', '); document.getElementById('inpTags').value=(f.tags||[]).join(', ');
-            document.getElementById('inpCW').value=(f.cws||[]).join(', '); // NEW CW FIELD
-
+            document.getElementById('inpCW').value=(f.cws||[]).join(', ');
             const dInput = document.getElementById('inpDateFinished');
             if(f.dateFinished) { const d=parseDateLocal(f.dateFinished); dInput.value=d?d.toISOString().split('T')[0]:''; } else dInput.value='';
             document.getElementById('btnDelete').classList.remove('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden');
@@ -595,7 +666,7 @@
                 status: document.getElementById('inpStatus').value, wordcount: parseInt(document.getElementById('inpWords').value)||0, chapters: parseInt(document.getElementById('inpChapters').value)||0,
                 summary: document.getElementById('inpSummary').value, notes: document.getElementById('inpNotes').value,
                 ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s), tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
-                cws: document.getElementById('inpCW').value.split(',').map(s=>s.trim()).filter(s=>s), // NEW CW DATA
+                cws: document.getElementById('inpCW').value.split(',').map(s=>s.trim()).filter(s=>s),
                 dateFinished: document.getElementById('inpReadStatus').value==='read'?document.getElementById('inpDateFinished').value:null,
                 series: document.getElementById('inpSeries').value.trim(), seriesPart: parseInt(document.getElementById('inpSeriesPart').value)||0
             };
