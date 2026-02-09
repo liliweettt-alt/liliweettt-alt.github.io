@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v21</title>
+    <title>FicLib Tracker v22</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -22,7 +22,7 @@
         .safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        input[type="date"] { color-scheme: dark; }
+        input[type="date"], input[type="month"] { color-scheme: dark; }
 
         /* GLASS NAVIGATION */
         .glass-nav {
@@ -70,6 +70,8 @@
         .badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
         .tag-chip { font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8; }
         .cw-chip { font-size: 0.7rem; background: rgba(239, 68, 68, 0.15); padding: 2px 8px; border-radius: 4px; color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); margin-right: 4px; font-weight: 600; }
+        .tab-btn-active { background-color: #334155; color: white; border-color: #818cf8; }
+        .tab-btn-inactive { background-color: transparent; color: #64748b; border-color: transparent; }
         .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -147,88 +149,88 @@
         </div>
 
         <div id="tab-dashboard" class="tab-content hidden animate-fade-in">
-            <h1 class="text-2xl font-bold mb-6">Global Stats</h1>
-            
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
-                    <div class="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400"><i class="fa-solid fa-book-open"></i></div>
-                    <p class="text-slate-400 text-[10px] uppercase font-bold">Total Words Read</p><p class="text-xl font-bold text-white mt-1" id="stat-words">0</p>
-                </div>
-                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
-                    <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-purple-400"><i class="fa-solid fa-layer-group"></i></div>
-                    <p class="text-slate-400 text-[10px] uppercase font-bold">Total Fics in List</p><p class="text-xl font-bold text-white mt-1" id="stat-total">0</p>
-                </div>
+            <div class="flex items-center justify-center gap-2 bg-slate-800/50 p-1 rounded-xl mb-6">
+                <button onclick="switchStatsView('global')" id="btn-stats-global" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all tab-btn-active">All Time</button>
+                <button onclick="switchStatsView('monthly')" id="btn-stats-monthly" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all tab-btn-inactive">Monthly</button>
             </div>
 
-            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-6">
-                <div class="flex justify-between text-xs text-slate-400 mb-3 font-semibold">
-                    <span id="stat-read-count">Read: 0</span>
-                    <span id="stat-unread-count">Unread: 0</span>
-                </div>
-                <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner">
-                    <div id="stat-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-white" style="width: 0%">0%</div>
-                </div>
-            </div>
-
-            <div class="space-y-6 mb-8">
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms (All Time)</h3>
-                    <div class="h-48 relative"><canvas id="chartFandoms"></canvas></div>
-                </div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships (All Time)</h3>
-                    <div class="h-48 relative"><canvas id="chartShips"></canvas></div>
-                </div>
-                <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                    <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags (All Time)</h3>
-                    <div class="h-48 relative"><canvas id="chartTags"></canvas></div>
-                </div>
-            </div>
-
-            <div class="border-t border-slate-700 pt-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-white">Yearly Breakdown</h3>
-                    <select id="yearSelector" class="bg-slate-800 border border-slate-700 text-indigo-400 text-xs rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" onchange="renderYearlyStats()">
-                        </select>
-                </div>
-                
-                <div id="yearStatsContainer" class="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl flex justify-around items-center">
-                    <div class="text-center">
-                        <p class="text-xs text-slate-500 uppercase">Words</p>
-                        <p class="text-xl font-bold text-white" id="year-stat-words">0</p>
+            <div id="view-stats-global" class="animate-fade-in">
+                <h1 class="text-2xl font-bold mb-4">Global Overview</h1>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
+                        <div class="w-10 h-10 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400"><i class="fa-solid fa-book-open"></i></div>
+                        <p class="text-slate-400 text-[10px] uppercase font-bold">Total Words</p><p class="text-xl font-bold text-white mt-1" id="stat-words">0</p>
                     </div>
-                    <div class="h-10 w-px bg-slate-700"></div>
-                    <div class="text-center">
-                        <p class="text-xs text-slate-500 uppercase">Fics Finished</p>
-                        <p class="text-xl font-bold text-white" id="year-stat-count">0</p>
+                    <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
+                        <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-purple-400"><i class="fa-solid fa-layer-group"></i></div>
+                        <p class="text-slate-400 text-[10px] uppercase font-bold">Total Fics</p><p class="text-xl font-bold text-white mt-1" id="stat-total">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-6">
+                    <div class="flex justify-between text-xs text-slate-400 mb-3 font-semibold">
+                        <span id="stat-read-count">Read: 0</span>
+                        <span id="stat-unread-count">Unread: 0</span>
+                    </div>
+                    <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner">
+                        <div id="stat-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-white" style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <div class="space-y-6 mb-8">
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms</h3>
+                        <div class="h-48 relative"><canvas id="chartFandoms"></canvas></div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships</h3>
+                        <div class="h-48 relative"><canvas id="chartShips"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mt-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wide" id="goalTitleYear">Reading Goal</h3>
+                        <button onclick="toggleGoalEdit()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i> Edit</button>
+                    </div>
+                    <div id="goalDisplay">
+                        <div class="flex justify-between text-xs text-slate-400 mb-1"><span id="goalTextCurrent" class="font-mono text-white">0</span><span id="goalTextTarget" class="font-mono">/ 0</span></div>
+                        <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner relative"><div id="goalProgressBar" class="bg-gradient-to-r from-emerald-600 to-teal-400 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-slate-900" style="width: 0%">0%</div></div>
+                    </div>
+                    <div id="goalEditor" class="hidden space-y-3 mt-4 border-t border-slate-700 pt-3 animate-fade-in">
+                        <div class="grid grid-cols-2 gap-2"><select id="goalType" class="input-field text-xs p-2 bg-slate-700"><option value="words">Word Count</option><option value="fics">Fics Read</option></select><input type="number" id="goalNumber" placeholder="Target Amount" class="input-field text-xs p-2 bg-slate-700"></div>
+                        <button onclick="saveGoal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition-colors">Set Goal</button>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mt-6">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wide" id="goalTitleYear">Reading Goal</h3>
-                    <button onclick="toggleGoalEdit()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-pen"></i> Edit</button>
+            <div id="view-stats-monthly" class="hidden animate-fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Monthly Tracker</h1>
+                    <input type="month" id="monthPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="renderMonthlyStats()">
                 </div>
-                <div id="goalDisplay">
-                    <div class="flex justify-between text-xs text-slate-400 mb-1">
-                        <span id="goalTextCurrent" class="font-mono text-white">0</span>
-                        <span id="goalTextTarget" class="font-mono">/ 0</span>
+
+                <div id="monthly-content">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Words this Month</p>
+                            <p class="text-xl font-bold text-white mt-1" id="month-words">0</p>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Fics Finished</p>
+                            <p class="text-xl font-bold text-white mt-1" id="month-count">0</p>
+                        </div>
                     </div>
-                    <div class="w-full bg-slate-700 rounded-full h-4 overflow-hidden shadow-inner relative">
-                        <div id="goalProgressBar" class="bg-gradient-to-r from-emerald-600 to-teal-400 h-4 rounded-full transition-all duration-1000 ease-out flex items-center justify-end pr-2 text-[9px] font-bold text-slate-900" style="width: 0%">0%</div>
+
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 mb-6">
+                        <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Daily Activity</h3>
+                        <div class="h-48 relative"><canvas id="chartDaily"></canvas></div>
                     </div>
-                    <p id="goalMessage" class="text-center text-[10px] text-slate-500 mt-2 italic">Set a goal to start tracking!</p>
-                </div>
-                <div id="goalEditor" class="hidden space-y-3 mt-4 border-t border-slate-700 pt-3 animate-fade-in">
-                    <div class="grid grid-cols-2 gap-2">
-                        <select id="goalType" class="input-field text-xs p-2 bg-slate-700">
-                            <option value="words">Word Count</option>
-                            <option value="fics">Fics Read</option>
-                        </select>
-                        <input type="number" id="goalNumber" placeholder="Target Amount" class="input-field text-xs p-2 bg-slate-700">
+
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Fandoms (This Month)</h3>
+                        <div id="month-top-fandoms" class="space-y-2 mt-2"></div>
                     </div>
-                    <button onclick="saveGoal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold py-2 rounded-lg transition-colors">Set Goal</button>
                 </div>
             </div>
         </div>
@@ -304,7 +306,7 @@
     <script>
         let fics = [];
         let readingGoal = { type: 'words', amount: 0 };
-        let chartInstances = { fandoms: null, ships: null, tags: null };
+        let chartInstances = { fandoms: null, ships: null, daily: null };
 
         document.addEventListener('DOMContentLoaded', () => {
             const stored = localStorage.getItem('ficLibData');
@@ -329,6 +331,9 @@
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
             document.getElementById('ficForm').addEventListener('submit', handleFormSubmit);
             document.getElementById('goalTitleYear').innerText = `${new Date().getFullYear()} Reading Goal`;
+            
+            // Set current month for monthly stats
+            document.getElementById('monthPicker').value = new Date().toISOString().slice(0, 7);
         });
 
         function switchTab(tab) {
@@ -344,6 +349,24 @@
         }
         function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); }
         function saveWPM() { localStorage.setItem('ficLibWPM', document.getElementById('inpWPM').value); renderLibrary(); }
+
+        // --- STATS VIEW SWITCHER ---
+        function switchStatsView(view) {
+            document.getElementById('view-stats-global').classList.toggle('hidden', view !== 'global');
+            document.getElementById('view-stats-monthly').classList.toggle('hidden', view !== 'monthly');
+            
+            const btnGlobal = document.getElementById('btn-stats-global');
+            const btnMonthly = document.getElementById('btn-stats-monthly');
+            
+            if(view === 'global') {
+                btnGlobal.classList.add('tab-btn-active'); btnGlobal.classList.remove('tab-btn-inactive');
+                btnMonthly.classList.remove('tab-btn-active'); btnMonthly.classList.add('tab-btn-inactive');
+            } else {
+                btnMonthly.classList.add('tab-btn-active'); btnMonthly.classList.remove('tab-btn-inactive');
+                btnGlobal.classList.remove('tab-btn-active'); btnGlobal.classList.add('tab-btn-inactive');
+                renderMonthlyStats(); // Force refresh chart
+            }
+        }
 
         // --- FILTERS & LIBRARY ---
         function populateFilterDropdowns() {
@@ -376,80 +399,32 @@
                 let filtered = fics.filter(f => {
                     if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
                     if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
-                    if (coverFilter !== 'all') {
-                        const hasCover = (f.coverStatus === 'yes');
-                        if (coverFilter === 'yes' && !hasCover) return false;
-                        if (coverFilter === 'not' && hasCover) return false;
-                    }
+                    if (coverFilter !== 'all') { const hasCover = (f.coverStatus === 'yes'); if (coverFilter === 'yes' && !hasCover) return false; if (coverFilter === 'not' && hasCover) return false; }
                     if (shipFilter !== 'all' && (!f.ships || !f.ships.includes(shipFilter))) return false;
                     if (tagFilter !== 'all' && (!f.tags || !f.tags.includes(tagFilter))) return false;
                     const chaps = f.chapters || 0;
-                    if (chapterFilter === 'short' && chaps >= 10) return false;
-                    if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false;
-                    if (chapterFilter === 'long' && chaps <= 50) return false;
-                    if (search) {
-                        const txt = `${f.title} ${f.series || ''} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase();
-                        return txt.includes(search);
-                    }
+                    if (chapterFilter === 'short' && chaps >= 10) return false; if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false; if (chapterFilter === 'long' && chaps <= 50) return false;
+                    if (search) { const txt = `${f.title} ${f.series || ''} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase(); return txt.includes(search); }
                     return true;
                 });
 
                 const groups = {};
                 const displayList = [];
-                filtered.forEach(f => {
-                    if(f.series && f.series.trim() !== "") {
-                        const sName = f.series.trim();
-                        if(!groups[sName]) groups[sName] = [];
-                        groups[sName].push(f);
-                    } else {
-                        displayList.push({ type: 'fic', data: f });
-                    }
-                });
-
-                Object.keys(groups).forEach(seriesName => {
-                    const seriesFics = groups[seriesName];
-                    seriesFics.sort((a,b) => (a.seriesPart || 0) - (b.seriesPart || 0));
-                    const dates = seriesFics.map(f => { const d = parseDateLocal(f.dateFinished); return d ? d.getTime() : 0; });
-                    displayList.push({
-                        type: 'series', title: seriesName, fandom: seriesFics[0].fandom, author: seriesFics[0].author,
-                        totalWords: seriesFics.reduce((sum, f) => sum + (f.wordcount||0), 0),
-                        items: seriesFics, latestTimestamp: Math.max(...dates)
-                    });
-                });
-
+                filtered.forEach(f => { if(f.series && f.series.trim() !== "") { const sName = f.series.trim(); if(!groups[sName]) groups[sName] = []; groups[sName].push(f); } else { displayList.push({ type: 'fic', data: f }); } });
+                Object.keys(groups).forEach(seriesName => { const seriesFics = groups[seriesName]; seriesFics.sort((a,b) => (a.seriesPart || 0) - (b.seriesPart || 0)); const dates = seriesFics.map(f => { const d = parseDateLocal(f.dateFinished); return d ? d.getTime() : 0; }); displayList.push({ type: 'series', title: seriesName, fandom: seriesFics[0].fandom, author: seriesFics[0].author, totalWords: seriesFics.reduce((sum, f) => sum + (f.wordcount||0), 0), items: seriesFics, latestTimestamp: Math.max(...dates) }); });
                 displayList.sort((a, b) => {
-                    const getTs = (item) => {
-                        if(item.type === 'series') return item.latestTimestamp || 0;
-                        const d = parseDateLocal(item.data.dateFinished); return d ? d.getTime() : 0;
-                    };
+                    const getTs = (item) => { if(item.type === 'series') return item.latestTimestamp || 0; const d = parseDateLocal(item.data.dateFinished); return d ? d.getTime() : 0; };
                     const getWords = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount||0);
                     const getTitle = (item) => item.type === 'series' ? item.title : item.data.title;
-
-                    if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b));
-                    if (sortMode === 'words') return getWords(b) - getWords(a);
-                    return getTs(b) - getTs(a); 
+                    if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b)); if (sortMode === 'words') return getWords(b) - getWords(a); return getTs(b) - getTs(a); 
                 });
 
                 if(displayList.length === 0) list.innerHTML = `<div class="text-center text-slate-500 py-10">No fics found.</div>`;
-                
-                displayList.forEach(item => {
-                    if (item.type === 'fic') renderFicCard(item.data, list);
-                    else renderSeriesCard(item, list);
-                });
-            } catch(err) {
-                console.error(err);
-                list.innerHTML = `<div class="text-red-400 text-center py-5">Error rendering list. Check console.</div>`;
-            }
+                displayList.forEach(item => { if (item.type === 'fic') renderFicCard(item.data, list); else renderSeriesCard(item, list); });
+            } catch(err) { console.error(err); list.innerHTML = `<div class="text-red-400 text-center py-5">Error rendering list. Check console.</div>`; }
         }
 
-        function calculateTime(words) {
-            if(!words) return "";
-            const wpm = parseInt(localStorage.getItem('ficLibWPM')) || 250;
-            const min = Math.ceil(words / wpm);
-            const h = Math.floor(min / 60);
-            const m = min % 60;
-            return h > 0 ? `${h}h ${m}m` : `${m}min`;
-        }
+        function calculateTime(words) { if(!words) return ""; const wpm = parseInt(localStorage.getItem('ficLibWPM')) || 250; const min = Math.ceil(words / wpm); const h = Math.floor(min / 60); const m = min % 60; return h > 0 ? `${h}h ${m}m` : `${m}min`; }
 
         // --- NEW RENDER CARD with EXPANDABLE INFO ---
         function renderFicCard(f, container) {
@@ -462,7 +437,6 @@
             const shipHtml = (f.ships || []).length > 0 ? `<span class="text-indigo-400 text-xs font-bold mr-2"><i class="fa-solid fa-heart mr-1"></i>${f.ships[0]}</span>` : '';
             const readTime = calculateTime(f.wordcount);
             
-            // LOGIC TO SHOW EXPAND BUTTON
             const hasSummary = f.summary && f.summary.trim() !== "";
             const hasNotes = f.notes && f.notes.trim() !== "";
             const hasTags = (f.tags || []).length > 0;
@@ -470,7 +444,6 @@
             const showToggle = hasSummary || hasNotes || hasTags;
             const toggleBtn = showToggle ? `<button onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden')" class="text-slate-500 hover:text-white transition-colors p-1"><i class="fa-solid fa-chevron-down"></i></button>` : '';
 
-            // EXPANDED CONTENT BLOCKS
             const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>` : '';
             const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${f.summary}</div>` : '';
             const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${f.notes}</div>` : '';
@@ -534,29 +507,10 @@
             container.appendChild(div);
         }
 
-        // --- DISCOVERY ---
-        function renderDiscovery() {
-            const container = document.getElementById('discoveryList');
-            const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
-            if (unread.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read!</div>'; return; }
-            container.innerHTML = '';
-            unread.sort(() => 0.5 - Math.random()).slice(0, 5).forEach(f => {
-                const card = document.createElement('div');
-                card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
-                const cwHtml = (f.cws || []).map(c => `<span class="cw-chip">${c}</span>`).join('');
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-bold text-slate-500 uppercase">${f.fandom}</span><h3 class="text-xl font-bold text-white leading-tight">${f.title}</h3><p class="text-sm text-slate-400">by ${f.author}</p></div></div>
-                    <div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>
-                    <div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary.'}</div>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words • ${calculateTime(f.wordcount)}</span><button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">Details</button></div>`;
-                container.appendChild(card);
-            });
-        }
-
         // --- DASHBOARD LOGIC ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
+            // Global Stats
             document.getElementById('stat-total').innerText = fics.length;
             document.getElementById('stat-words').innerText = readFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             document.getElementById('stat-read-count').innerText = `Read: ${readFics.length}`;
@@ -566,28 +520,67 @@
             bar.style.width = `${pct}%`;
             bar.innerText = `${pct}%`;
 
-            const years = [...new Set(readFics.map(f => { const d = parseDateLocal(f.dateFinished); return d ? d.getFullYear() : null; }).filter(y => y))].sort((a,b) => b-a);
-            const yearSelect = document.getElementById('yearSelector');
-            const currentSel = yearSelect.value;
-            yearSelect.innerHTML = '';
-            if (years.length === 0) { yearSelect.innerHTML = '<option value="">No Data</option>'; } 
-            else { years.forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; yearSelect.appendChild(opt); });
-            if (currentSel && years.includes(parseInt(currentSel))) { yearSelect.value = currentSel; } else { yearSelect.value = years[0]; } }
-            
-            renderYearlyStats();
             renderPieChart('chartFandoms', readFics, f => f.fandom, 'fandoms');
             renderPieChart('chartShips', readFics, f => f.ships, 'ships');
-            renderPieChart('chartTags', readFics, f => f.tags, 'tags');
             updateGoalUI();
         }
 
-        function renderYearlyStats() {
-            const year = parseInt(document.getElementById('yearSelector').value);
-            if (!year) { document.getElementById('year-stat-words').innerText = "0"; document.getElementById('year-stat-count').innerText = "0"; return; }
-            const readFics = fics.filter(f => f.rereadStatus === 'read');
-            const ficsThisYear = readFics.filter(f => { const d = parseDateLocal(f.dateFinished); return d && d.getFullYear() === year; });
-            document.getElementById('year-stat-words').innerText = ficsThisYear.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
-            document.getElementById('year-stat-count').innerText = ficsThisYear.length;
+        function renderMonthlyStats() {
+            const pickerVal = document.getElementById('monthPicker').value;
+            if(!pickerVal) return;
+            const [year, month] = pickerVal.split('-').map(Number);
+            
+            const monthFics = fics.filter(f => {
+                if(f.rereadStatus !== 'read') return false;
+                const d = parseDateLocal(f.dateFinished);
+                return d && d.getFullYear() === year && (d.getMonth() + 1) === month;
+            });
+
+            // Update Cards
+            document.getElementById('month-words').innerText = monthFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
+            document.getElementById('month-count').innerText = monthFics.length;
+
+            // Render Daily Chart
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+            const data = new Array(daysInMonth).fill(0);
+            
+            monthFics.forEach(f => {
+                const d = parseDateLocal(f.dateFinished);
+                const day = d.getDate();
+                data[day - 1] += (f.wordcount || 0);
+            });
+
+            const ctx = document.getElementById('chartDaily').getContext('2d');
+            if(chartInstances.daily) chartInstances.daily.destroy();
+            chartInstances.daily = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Words',
+                        data: data,
+                        backgroundColor: '#818cf8',
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } },
+                        y: { border: { display: false }, grid: { color: '#334155' }, ticks: { color: '#64748b', font: { size: 9 } } }
+                    }
+                }
+            });
+
+            // Top Fandoms List
+            const fandomCounts = {};
+            monthFics.forEach(f => { if(f.fandom) fandomCounts[f.fandom] = (fandomCounts[f.fandom] || 0) + 1; });
+            const topFandoms = Object.entries(fandomCounts).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            const listEl = document.getElementById('month-top-fandoms');
+            listEl.innerHTML = topFandoms.map(([k,v]) => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 last:border-0"><span class="text-slate-300">${k}</span><span class="text-indigo-400 font-bold">${v}</span></div>`).join('') || '<p class="text-xs text-slate-500 italic">No data</p>';
         }
 
         function renderPieChart(canvasId, list, keyFn, instanceName) {
