@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v23</title>
+    <title>FicLib Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -24,7 +24,6 @@
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         input[type="date"], input[type="month"] { color-scheme: dark; }
 
-        /* GLASS NAVIGATION */
         .glass-nav {
             background-color: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(12px);
@@ -34,7 +33,6 @@
         .nav-btn.active { color: #818cf8; }
         .nav-btn { color: #64748b; }
 
-        /* CARDS */
         .fic-card {
             background-color: var(--bg-card);
             transition: transform 0.2s, box-shadow 0.2s;
@@ -42,7 +40,6 @@
         }
         .fic-card:active { transform: scale(0.99); }
 
-        /* SERIES FOLDER */
         .series-folder {
             background-color: rgba(30, 41, 59, 0.6);
             border: 1px solid rgba(129, 140, 248, 0.3);
@@ -53,11 +50,18 @@
             background: rgba(129, 140, 248, 0.2); border-radius: 4px 4px 0 0;
         }
 
-        /* INPUTS */
         .input-field { 
-            width: 100%; background-color: var(--bg-input); padding: 0.8rem; border-radius: 0.75rem; 
-            border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 0.9rem; 
-            font-family: 'Inter', sans-serif; transition: all 0.2s;
+            width: 100%;
+            max-width: 100%; 
+            box-sizing: border-box;
+            background-color: var(--bg-input); 
+            padding: 0.8rem; 
+            border-radius: 0.75rem; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            color: white; 
+            font-size: 0.9rem; 
+            font-family: 'Inter', sans-serif; 
+            transition: all 0.2s;
         }
         .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 
@@ -66,8 +70,21 @@
             background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.2em 1.2em;
             padding-right: 2.5rem; -webkit-appearance: none; appearance: none;
         }
-
-        .badge { display: inline-flex; align-items: center; padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .badge { 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 0.5rem;
+            font-size: 0.65rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em;
+            white-space: normal;
+            text-align: left;
+            line-height: 1.2;
+            height: auto;
+        }
+        
         .tag-chip { font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8; }
         .cw-chip { font-size: 0.7rem; background: rgba(239, 68, 68, 0.15); padding: 2px 8px; border-radius: 4px; color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); margin-right: 4px; font-weight: 600; }
         .tab-btn-active { background-color: #334155; color: white; border-color: #818cf8; }
@@ -317,8 +334,8 @@
                     <div><label class="text-xs font-bold text-indigo-400 ml-1 uppercase tracking-wide"><i class="fa-regular fa-note-sticky mr-1"></i> My Notes</label><textarea id="inpNotes" placeholder="Personal thoughts..." rows="2" class="input-field border-indigo-500/30 bg-indigo-500/5 text-sm"></textarea></div>
                 </div>
                 <div class="space-y-3 pt-2 border-t border-slate-700">
-                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used...</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
-                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used...</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
                 </div>
                 <div class="flex gap-3 mt-6 pt-4 border-t border-slate-700">
                     <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-400 p-3 rounded-xl font-bold w-1/4 transition-colors border border-red-500/20"><i class="fa-solid fa-trash"></i></button>
@@ -350,7 +367,7 @@
                     });
                 } catch(e) { console.error("Data load error", e); fics = []; }
                 renderLibrary();
-                updateReport(); // Init report
+                updateReport();
             }
             if (storedGoal) { try { readingGoal = JSON.parse(storedGoal); } catch(e) { console.error(e); } }
             
@@ -375,7 +392,6 @@
         function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); updateReport(); }
         function saveWPM() { localStorage.setItem('ficLibWPM', document.getElementById('inpWPM').value); renderLibrary(); }
 
-        // --- STATS VIEW SWITCHER ---
         function switchStatsView(view) {
             document.getElementById('view-stats-global').classList.toggle('hidden', view !== 'global');
             document.getElementById('view-stats-monthly').classList.toggle('hidden', view !== 'monthly');
@@ -391,7 +407,6 @@
             }
         }
 
-        // --- FILTERS & LIBRARY ---
         function populateFilterDropdowns() {
             const shipSet = new Set(), tagSet = new Set();
             fics.forEach(f => { (f.ships || []).forEach(s => shipSet.add(s.trim())); (f.tags || []).forEach(t => tagSet.add(t.trim())); });
@@ -449,7 +464,6 @@
 
         function calculateTime(words) { if(!words) return ""; const wpm = parseInt(localStorage.getItem('ficLibWPM')) || 250; const min = Math.ceil(words / wpm); const h = Math.floor(min / 60); const m = min % 60; return h > 0 ? `${h}h ${m}m` : `${m}min`; }
 
-        // --- RENDER HELPERS ---
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
             const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
@@ -500,14 +514,12 @@
             const contentBox = div.querySelector('.series-content'); series.items.forEach(f => renderFicCard(f, contentBox)); container.appendChild(div);
         }
 
-        // --- DISCOVERY FIXED ---
         function renderDiscovery() {
             const container = document.getElementById('discoveryList');
-            // FIX: Grab fresh fics list here to ensure updates are reflected
             const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
             if (unread.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read!</div>'; return; }
             container.innerHTML = '';
-            // FIX: Ensure randomness works
+    
             const shuffled = [...unread].sort(() => 0.5 - Math.random()).slice(0, 5);
             shuffled.forEach(f => {
                 const card = document.createElement('div'); card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
@@ -517,7 +529,6 @@
             });
         }
 
-        // --- DASHBOARD LOGIC ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
             document.getElementById('stat-total').innerText = fics.length;
@@ -546,7 +557,6 @@
             document.getElementById('month-words').innerText = monthFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             document.getElementById('month-count').innerText = monthFics.length;
 
-            // Daily Chart
             const daysInMonth = new Date(year, month, 0).getDate();
             const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
             const data = new Array(daysInMonth).fill(0);
@@ -555,7 +565,6 @@
             if(chartInstances.daily) chartInstances.daily.destroy();
             chartInstances.daily = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Words', data: data, backgroundColor: '#818cf8', borderRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }, y: { border: { display: false }, grid: { color: '#334155' }, ticks: { color: '#64748b', font: { size: 9 } } } } } });
 
-            // Monthly Lists - Helper to render
             const renderList = (id, keyFn) => {
                 const counts = {};
                 monthFics.forEach(f => { const keys = keyFn(f); (Array.isArray(keys)?keys:[keys]).forEach(k => { if(k) counts[k] = (counts[k] || 0) + 1; }); });
@@ -579,7 +588,6 @@
             chartInstances[instanceName] = new Chart(ctx, { type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#1e293b', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } } } } });
         }
 
-        // --- READING GOAL LOGIC ---
         function toggleGoalEdit() { const editor = document.getElementById('goalEditor'); editor.classList.toggle('hidden'); if(!editor.classList.contains('hidden')) { document.getElementById('goalType').value = readingGoal.type; document.getElementById('goalNumber').value = readingGoal.amount || ''; } }
         function saveGoal() { const type = document.getElementById('goalType').value; const amount = parseInt(document.getElementById('goalNumber').value); if(amount > 0) { readingGoal = { type, amount }; localStorage.setItem('ficLibGoal', JSON.stringify(readingGoal)); toggleGoalEdit(); updateGoalUI(); } else { alert("Please enter a valid number."); } }
         function updateGoalUI() {
@@ -591,10 +599,9 @@
             document.getElementById('goalTextTarget').innerText = `/ ${target.toLocaleString()} ${readingGoal.type}`;
             document.getElementById('goalProgressBar').style.width = `${pct}%`; document.getElementById('goalProgressBar').innerText = `${pct}%`;
             const msg = document.getElementById('goalMessage');
-            if(currentVal >= target && target > 1) { msg.innerText = "🎉 Goal Reached! Amazing!"; msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; } else { msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`; msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; }
+            if(currentVal >= target && target > 1) { msg.innerText = "Goal Reached! Amazing!"; msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; } else { msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`; msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; }
         }
 
-        // --- HISTORY REPORT (REVAMPED) ---
         function updateReport() {
             const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
             const container = document.getElementById('reportContent');
@@ -606,25 +613,20 @@
                 picker.style.display = 'none'; statsHeader.style.display = 'none'; return;
             }
 
-            // Get Years
             const years = [...new Set(finished.map(f => parseDateLocal(f.dateFinished).getFullYear()))].sort((a,b) => b-a);
             
-            // Populate Dropdown if empty
             if(picker.children.length === 0) {
                 years.forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; picker.appendChild(opt); });
-                picker.value = years[0]; // Default to latest
+                picker.value = years[0];
             }
             picker.style.display = 'block'; statsHeader.style.display = 'flex';
 
             const selectedYear = parseInt(picker.value);
             const yearFics = finished.filter(f => parseDateLocal(f.dateFinished).getFullYear() === selectedYear);
-
-            // Update Year Stats
             const yearWords = yearFics.reduce((s,f) => s + (f.wordcount || 0), 0);
             document.getElementById('hist-year-words').innerText = yearWords.toLocaleString();
             document.getElementById('hist-year-count').innerText = yearFics.length;
 
-            // Render Months
             const groups = {};
             yearFics.forEach(f => { const d = parseDateLocal(f.dateFinished); const m = d.getMonth(); if(!groups[m]) groups[m]=[]; groups[m].push({...f, dObj: d}); });
             
@@ -643,7 +645,6 @@
             });
         }
 
-        // --- HELPERS & MODAL ---
         function parseDateLocal(input) { if(!input) return null; if(typeof input==='number') return new Date((input+978307200)*1000); if(typeof input==='string' && input.includes('-') && input.length===10) { const [y,m,d]=input.split('-').map(Number); return new Date(y,m-1,d); } return new Date(input); }
         function pickSuggestion(id, selId) { const sel=document.getElementById(selId); const val=sel.value; if(!val)return; const inp=document.getElementById(id); const cur=inp.value.trim(); inp.value=cur.length===0?val:(!cur.includes(val)?cur+', '+val:cur); sel.value=""; }
         function toggleDateVisibility() { const s=document.getElementById('inpReadStatus').value; document.getElementById('divDateFinished').classList.toggle('hidden', s!=='read'); if(s==='read' && !document.getElementById('inpDateFinished').value) document.getElementById('inpDateFinished').valueAsDate = new Date(); }
@@ -689,3 +690,4 @@
     </script>
 </body>
 </html>
+
