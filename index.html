@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v20</title>
+    <title>FicLib Tracker v21</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -286,12 +286,7 @@
                 </div>
                 <div class="space-y-3">
                     <div><label class="text-xs font-bold text-slate-400 ml-1 uppercase tracking-wide">Summary</label><textarea id="inpSummary" placeholder="Paste official summary..." rows="3" class="input-field text-sm leading-relaxed text-slate-300"></textarea></div>
-                    
-                    <div>
-                        <label class="text-xs font-bold text-red-400 ml-1 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Content Warnings</label>
-                        <textarea id="inpCW" placeholder="Major Character Death, Violence..." rows="1" class="input-field border-red-500/30 bg-red-500/5 text-sm"></textarea>
-                    </div>
-
+                    <div><label class="text-xs font-bold text-red-400 ml-1 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Content Warnings</label><textarea id="inpCW" placeholder="Major Character Death, Violence..." rows="1" class="input-field border-red-500/30 bg-red-500/5 text-sm"></textarea></div>
                     <div><label class="text-xs font-bold text-indigo-400 ml-1 uppercase tracking-wide"><i class="fa-regular fa-note-sticky mr-1"></i> My Notes</label><textarea id="inpNotes" placeholder="Personal thoughts..." rows="2" class="input-field border-indigo-500/30 bg-indigo-500/5 text-sm"></textarea></div>
                 </div>
                 <div class="space-y-3 pt-2 border-t border-slate-700">
@@ -456,7 +451,7 @@
             return h > 0 ? `${h}h ${m}m` : `${m}min`;
         }
 
-        // --- NEW RENDER CARD with EXPANDABLE SUMMARY ---
+        // --- NEW RENDER CARD with EXPANDABLE INFO ---
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
             const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
@@ -467,10 +462,18 @@
             const shipHtml = (f.ships || []).length > 0 ? `<span class="text-indigo-400 text-xs font-bold mr-2"><i class="fa-solid fa-heart mr-1"></i>${f.ships[0]}</span>` : '';
             const readTime = calculateTime(f.wordcount);
             
-            // Unique ID for toggle
-            const summaryId = `sum-${f.id}`;
+            // LOGIC TO SHOW EXPAND BUTTON
             const hasSummary = f.summary && f.summary.trim() !== "";
-            const toggleBtn = hasSummary ? `<button onclick="event.stopPropagation(); document.getElementById('${summaryId}').classList.toggle('hidden')" class="text-slate-500 hover:text-white transition-colors p-1"><i class="fa-solid fa-chevron-down"></i></button>` : '';
+            const hasNotes = f.notes && f.notes.trim() !== "";
+            const hasTags = (f.tags || []).length > 0;
+            const toggleId = `toggle-${f.id}`;
+            const showToggle = hasSummary || hasNotes || hasTags;
+            const toggleBtn = showToggle ? `<button onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden')" class="text-slate-500 hover:text-white transition-colors p-1"><i class="fa-solid fa-chevron-down"></i></button>` : '';
+
+            // EXPANDED CONTENT BLOCKS
+            const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>` : '';
+            const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${f.summary}</div>` : '';
+            const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${f.notes}</div>` : '';
 
             const item = document.createElement('div');
             item.className = 'fic-card p-4 rounded-xl relative group mb-3';
@@ -498,8 +501,10 @@
                         </div>
                     </div>
                 </div>
-                <div id="${summaryId}" class="hidden mt-3 pt-3 border-t border-slate-700/50 text-sm text-slate-300 italic leading-relaxed animate-fade-in">
-                    ${f.summary}
+                <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">
+                    ${tagsBlock}
+                    ${summaryBlock}
+                    ${notesBlock}
                 </div>`;
             container.appendChild(item);
         }
