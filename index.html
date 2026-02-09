@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v22</title>
+    <title>FicLib Tracker v23</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -186,6 +186,10 @@
                         <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships</h3>
                         <div class="h-48 relative"><canvas id="chartShips"></canvas></div>
                     </div>
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags</h3>
+                        <div class="h-48 relative"><canvas id="chartTags"></canvas></div>
+                    </div>
                 </div>
 
                 <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mt-6">
@@ -227,16 +231,37 @@
                         <div class="h-48 relative"><canvas id="chartDaily"></canvas></div>
                     </div>
 
-                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
-                        <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Fandoms (This Month)</h3>
-                        <div id="month-top-fandoms" class="space-y-2 mt-2"></div>
+                    <div class="space-y-6">
+                        <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                            <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Fandoms</h3>
+                            <div id="month-top-fandoms" class="space-y-2 mt-2"></div>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                            <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Ships</h3>
+                            <div id="month-top-ships" class="space-y-2 mt-2"></div>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                            <h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Tags</h3>
+                            <div id="month-top-tags" class="space-y-2 mt-2"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="tab-report" class="tab-content hidden animate-fade-in">
-            <h1 class="text-2xl font-bold mb-6">Reading History</h1>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Reading History</h1>
+                <select id="historyYearPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="updateReport()">
+                    </select>
+            </div>
+            
+            <div id="history-stats-header" class="bg-slate-800/50 border border-slate-700/50 p-4 rounded-xl flex justify-around items-center mb-6 hidden">
+                <div class="text-center"><p class="text-xs text-slate-500 uppercase">Year Total</p><p class="text-xl font-bold text-white" id="hist-year-words">0</p></div>
+                <div class="h-8 w-px bg-slate-700"></div>
+                <div class="text-center"><p class="text-xs text-slate-500 uppercase">Fics Read</p><p class="text-xl font-bold text-white" id="hist-year-count">0</p></div>
+            </div>
+
             <div id="reportContent" class="space-y-6"></div>
         </div>
 
@@ -306,7 +331,7 @@
     <script>
         let fics = [];
         let readingGoal = { type: 'words', amount: 0 };
-        let chartInstances = { fandoms: null, ships: null, daily: null };
+        let chartInstances = { fandoms: null, ships: null, tags: null, daily: null };
 
         document.addEventListener('DOMContentLoaded', () => {
             const stored = localStorage.getItem('ficLibData');
@@ -325,14 +350,13 @@
                     });
                 } catch(e) { console.error("Data load error", e); fics = []; }
                 renderLibrary();
+                updateReport(); // Init report
             }
             if (storedGoal) { try { readingGoal = JSON.parse(storedGoal); } catch(e) { console.error(e); } }
             
             document.getElementById('fileInput').addEventListener('change', handleFileUpload);
             document.getElementById('ficForm').addEventListener('submit', handleFormSubmit);
             document.getElementById('goalTitleYear').innerText = `${new Date().getFullYear()} Reading Goal`;
-            
-            // Set current month for monthly stats
             document.getElementById('monthPicker').value = new Date().toISOString().slice(0, 7);
         });
 
@@ -342,29 +366,28 @@
             document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active', 'text-indigo-400'); el.classList.add('text-slate-500'); });
             const activeBtn = document.getElementById(`btn-${tab}`);
             activeBtn.classList.remove('text-slate-500'); activeBtn.classList.add('active', 'text-indigo-400');
+            
             if(tab === 'dashboard') updateDashboard();
             if(tab === 'report') updateReport();
             if(tab === 'discovery') renderDiscovery();
             window.scrollTo(0,0);
         }
-        function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); }
+        function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); updateReport(); }
         function saveWPM() { localStorage.setItem('ficLibWPM', document.getElementById('inpWPM').value); renderLibrary(); }
 
         // --- STATS VIEW SWITCHER ---
         function switchStatsView(view) {
             document.getElementById('view-stats-global').classList.toggle('hidden', view !== 'global');
             document.getElementById('view-stats-monthly').classList.toggle('hidden', view !== 'monthly');
-            
             const btnGlobal = document.getElementById('btn-stats-global');
             const btnMonthly = document.getElementById('btn-stats-monthly');
-            
             if(view === 'global') {
                 btnGlobal.classList.add('tab-btn-active'); btnGlobal.classList.remove('tab-btn-inactive');
                 btnMonthly.classList.remove('tab-btn-active'); btnMonthly.classList.add('tab-btn-inactive');
             } else {
                 btnMonthly.classList.add('tab-btn-active'); btnMonthly.classList.remove('tab-btn-inactive');
                 btnGlobal.classList.remove('tab-btn-active'); btnGlobal.classList.add('tab-btn-inactive');
-                renderMonthlyStats(); // Force refresh chart
+                renderMonthlyStats();
             }
         }
 
@@ -426,7 +449,7 @@
 
         function calculateTime(words) { if(!words) return ""; const wpm = parseInt(localStorage.getItem('ficLibWPM')) || 250; const min = Math.ceil(words / wpm); const h = Math.floor(min / 60); const m = min % 60; return h > 0 ? `${h}h ${m}m` : `${m}min`; }
 
-        // --- NEW RENDER CARD with EXPANDABLE INFO ---
+        // --- RENDER HELPERS ---
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
             const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
@@ -451,7 +474,6 @@
             const item = document.createElement('div');
             item.className = 'fic-card p-4 rounded-xl relative group mb-3';
             item.onclick = (e) => { if(!e.target.closest('button')) openEditModal(f.id); };
-            
             item.innerHTML = `
                 <div class="flex justify-between">
                     <div class="flex-1 min-w-0 pr-3">
@@ -463,65 +485,51 @@
                         <div class="mt-2 flex flex-wrap gap-y-1">${cwHtml} ${shipHtml}</div>
                     </div>
                     <div class="flex flex-col items-end justify-between pl-2 min-w-[75px] border-l border-slate-700/50 my-1">
-                        <div class="flex flex-col items-end gap-2">
-                            ${f.originalLink ? `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : ''}
-                            ${toggleBtn}
-                        </div>
-                        <div class="text-[10px] text-slate-500 text-right font-mono mt-auto">
-                            <span class="block text-white font-bold">${readTime}</span>
-                            <span class="block">${(f.wordcount||0).toLocaleString()}w</span>
-                            ${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}
-                        </div>
+                        <div class="flex flex-col items-end gap-2">${f.originalLink ? `<button onclick="event.stopPropagation(); window.open('${f.originalLink}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : ''} ${toggleBtn}</div>
+                        <div class="text-[10px] text-slate-500 text-right font-mono mt-auto"><span class="block text-white font-bold">${readTime}</span><span class="block">${(f.wordcount||0).toLocaleString()}w</span>${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}</div>
                     </div>
                 </div>
-                <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">
-                    ${tagsBlock}
-                    ${summaryBlock}
-                    ${notesBlock}
-                </div>`;
+                <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">${tagsBlock}${summaryBlock}${notesBlock}</div>`;
             container.appendChild(item);
         }
 
         function renderSeriesCard(series, container) {
-            const div = document.createElement('div');
-            div.className = 'series-folder rounded-xl mb-3 cursor-pointer overflow-hidden';
-            div.onclick = function(e) {
-                if(e.target.closest('.fic-card')) return;
-                const content = this.querySelector('.series-content');
-                const icon = this.querySelector('.chevron-icon');
-                content.classList.toggle('hidden');
-                icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-            };
-            div.innerHTML = `
-                <div class="p-4 flex justify-between items-center bg-slate-800/80 backdrop-blur-sm z-10 relative">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1"><span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Series</span><span class="text-[10px] text-slate-400 uppercase font-bold">${series.fandom}</span></div>
-                        <h3 class="font-bold text-lg text-white leading-tight">${series.title}</h3>
-                        <p class="text-xs text-slate-400 mt-1">${series.items.length} Works • ${series.totalWords.toLocaleString()} words</p>
-                    </div>
-                    <div class="pl-4 text-slate-500"><i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300"></i></div>
-                </div>
-                <div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in"></div>`;
-            const contentBox = div.querySelector('.series-content');
-            series.items.forEach(f => renderFicCard(f, contentBox));
-            container.appendChild(div);
+            const div = document.createElement('div'); div.className = 'series-folder rounded-xl mb-3 cursor-pointer overflow-hidden';
+            div.onclick = function(e) { if(e.target.closest('.fic-card')) return; const content = this.querySelector('.series-content'); const icon = this.querySelector('.chevron-icon'); content.classList.toggle('hidden'); icon.style.transform = content.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)'; };
+            div.innerHTML = `<div class="p-4 flex justify-between items-center bg-slate-800/80 backdrop-blur-sm z-10 relative"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Series</span><span class="text-[10px] text-slate-400 uppercase font-bold">${series.fandom}</span></div><h3 class="font-bold text-lg text-white leading-tight">${series.title}</h3><p class="text-xs text-slate-400 mt-1">${series.items.length} Works • ${series.totalWords.toLocaleString()} words</p></div><div class="pl-4 text-slate-500"><i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300"></i></div></div><div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in"></div>`;
+            const contentBox = div.querySelector('.series-content'); series.items.forEach(f => renderFicCard(f, contentBox)); container.appendChild(div);
+        }
+
+        // --- DISCOVERY FIXED ---
+        function renderDiscovery() {
+            const container = document.getElementById('discoveryList');
+            // FIX: Grab fresh fics list here to ensure updates are reflected
+            const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
+            if (unread.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read!</div>'; return; }
+            container.innerHTML = '';
+            // FIX: Ensure randomness works
+            const shuffled = [...unread].sort(() => 0.5 - Math.random()).slice(0, 5);
+            shuffled.forEach(f => {
+                const card = document.createElement('div'); card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
+                const cwHtml = (f.cws || []).map(c => `<span class="cw-chip">${c}</span>`).join('');
+                card.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-bold text-slate-500 uppercase">${f.fandom}</span><h3 class="text-xl font-bold text-white leading-tight">${f.title}</h3><p class="text-sm text-slate-400">by ${f.author}</p></div></div><div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div><div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary.'}</div><div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words • ${calculateTime(f.wordcount)}</span><button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">Details</button></div>`;
+                container.appendChild(card);
+            });
         }
 
         // --- DASHBOARD LOGIC ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
-            // Global Stats
             document.getElementById('stat-total').innerText = fics.length;
             document.getElementById('stat-words').innerText = readFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             document.getElementById('stat-read-count').innerText = `Read: ${readFics.length}`;
             document.getElementById('stat-unread-count').innerText = `Unread: ${fics.length - readFics.length}`;
             const pct = fics.length ? Math.round((readFics.length / fics.length) * 100) : 0;
-            const bar = document.getElementById('stat-progress-bar');
-            bar.style.width = `${pct}%`;
-            bar.innerText = `${pct}%`;
+            const bar = document.getElementById('stat-progress-bar'); bar.style.width = `${pct}%`; bar.innerText = `${pct}%`;
 
             renderPieChart('chartFandoms', readFics, f => f.fandom, 'fandoms');
             renderPieChart('chartShips', readFics, f => f.ships, 'ships');
+            renderPieChart('chartTags', readFics, f => f.tags, 'tags'); // Reintroduced
             updateGoalUI();
         }
 
@@ -529,58 +537,35 @@
             const pickerVal = document.getElementById('monthPicker').value;
             if(!pickerVal) return;
             const [year, month] = pickerVal.split('-').map(Number);
-            
             const monthFics = fics.filter(f => {
                 if(f.rereadStatus !== 'read') return false;
                 const d = parseDateLocal(f.dateFinished);
                 return d && d.getFullYear() === year && (d.getMonth() + 1) === month;
             });
 
-            // Update Cards
             document.getElementById('month-words').innerText = monthFics.reduce((s, f) => s + (f.wordcount || 0), 0).toLocaleString();
             document.getElementById('month-count').innerText = monthFics.length;
 
-            // Render Daily Chart
+            // Daily Chart
             const daysInMonth = new Date(year, month, 0).getDate();
             const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
             const data = new Array(daysInMonth).fill(0);
-            
-            monthFics.forEach(f => {
-                const d = parseDateLocal(f.dateFinished);
-                const day = d.getDate();
-                data[day - 1] += (f.wordcount || 0);
-            });
-
+            monthFics.forEach(f => { const d = parseDateLocal(f.dateFinished); const day = d.getDate(); data[day - 1] += (f.wordcount || 0); });
             const ctx = document.getElementById('chartDaily').getContext('2d');
             if(chartInstances.daily) chartInstances.daily.destroy();
-            chartInstances.daily = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Words',
-                        data: data,
-                        backgroundColor: '#818cf8',
-                        borderRadius: 3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } },
-                        y: { border: { display: false }, grid: { color: '#334155' }, ticks: { color: '#64748b', font: { size: 9 } } }
-                    }
-                }
-            });
+            chartInstances.daily = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Words', data: data, backgroundColor: '#818cf8', borderRadius: 3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }, y: { border: { display: false }, grid: { color: '#334155' }, ticks: { color: '#64748b', font: { size: 9 } } } } } });
 
-            // Top Fandoms List
-            const fandomCounts = {};
-            monthFics.forEach(f => { if(f.fandom) fandomCounts[f.fandom] = (fandomCounts[f.fandom] || 0) + 1; });
-            const topFandoms = Object.entries(fandomCounts).sort((a,b) => b[1] - a[1]).slice(0, 3);
-            const listEl = document.getElementById('month-top-fandoms');
-            listEl.innerHTML = topFandoms.map(([k,v]) => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 last:border-0"><span class="text-slate-300">${k}</span><span class="text-indigo-400 font-bold">${v}</span></div>`).join('') || '<p class="text-xs text-slate-500 italic">No data</p>';
+            // Monthly Lists - Helper to render
+            const renderList = (id, keyFn) => {
+                const counts = {};
+                monthFics.forEach(f => { const keys = keyFn(f); (Array.isArray(keys)?keys:[keys]).forEach(k => { if(k) counts[k] = (counts[k] || 0) + 1; }); });
+                const top = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 3);
+                document.getElementById(id).innerHTML = top.map(([k,v]) => `<div class="flex justify-between text-xs py-1 border-b border-slate-700/50 last:border-0"><span class="text-slate-300 truncate w-2/3">${k}</span><span class="text-indigo-400 font-bold">${v}</span></div>`).join('') || '<p class="text-xs text-slate-500 italic">No data</p>';
+            };
+            
+            renderList('month-top-fandoms', f => f.fandom);
+            renderList('month-top-ships', f => f.ships);
+            renderList('month-top-tags', f => f.tags);
         }
 
         function renderPieChart(canvasId, list, keyFn, instanceName) {
@@ -609,25 +594,52 @@
             if(currentVal >= target && target > 1) { msg.innerText = "🎉 Goal Reached! Amazing!"; msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; } else { msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`; msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; }
         }
 
-        // --- HISTORY REPORT ---
+        // --- HISTORY REPORT (REVAMPED) ---
         function updateReport() {
-            const container = document.getElementById('reportContent');
             const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
-            if (finished.length === 0) { container.innerHTML = '<div class="flex flex-col items-center justify-center py-12 text-slate-600"><i class="fa-regular fa-calendar-xmark text-4xl mb-3"></i><p>No finished dates</p></div>'; return; }
+            const container = document.getElementById('reportContent');
+            const picker = document.getElementById('historyYearPicker');
+            const statsHeader = document.getElementById('history-stats-header');
+
+            if (finished.length === 0) { 
+                container.innerHTML = '<div class="text-center text-slate-600 py-10">No finished dates logged</div>';
+                picker.style.display = 'none'; statsHeader.style.display = 'none'; return;
+            }
+
+            // Get Years
+            const years = [...new Set(finished.map(f => parseDateLocal(f.dateFinished).getFullYear()))].sort((a,b) => b-a);
+            
+            // Populate Dropdown if empty
+            if(picker.children.length === 0) {
+                years.forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; picker.appendChild(opt); });
+                picker.value = years[0]; // Default to latest
+            }
+            picker.style.display = 'block'; statsHeader.style.display = 'flex';
+
+            const selectedYear = parseInt(picker.value);
+            const yearFics = finished.filter(f => parseDateLocal(f.dateFinished).getFullYear() === selectedYear);
+
+            // Update Year Stats
+            const yearWords = yearFics.reduce((s,f) => s + (f.wordcount || 0), 0);
+            document.getElementById('hist-year-words').innerText = yearWords.toLocaleString();
+            document.getElementById('hist-year-count').innerText = yearFics.length;
+
+            // Render Months
             const groups = {};
-            finished.forEach(f => { const d = parseDateLocal(f.dateFinished); if(d) { const y = d.getFullYear(), m = d.getMonth(); if(!groups[y]) groups[y]={}; if(!groups[y][m]) groups[y][m]=[]; groups[y][m].push({...f, dObj: d}); }});
+            yearFics.forEach(f => { const d = parseDateLocal(f.dateFinished); const m = d.getMonth(); if(!groups[m]) groups[m]=[]; groups[m].push({...f, dObj: d}); });
+            
             container.innerHTML = '';
-            Object.keys(groups).sort((a,b)=>b-a).forEach(y => {
-                const yDiv = document.createElement('div'); yDiv.className = 'bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden mb-4';
-                const count = Object.values(groups[y]).reduce((s,a)=>s+a.length,0);
-                yDiv.innerHTML = `<div class="bg-slate-700/50 px-5 py-3 font-bold flex justify-between items-center"><span class="text-indigo-300 font-heading">${y}</span><span class="badge bg-slate-600 text-white">${count} Fics</span></div>`;
-                Object.keys(groups[y]).sort((a,b)=>b-a).forEach(m => {
-                    const mDiv = document.createElement('div'); mDiv.className = 'p-5 border-b border-slate-700 last:border-0';
-                    mDiv.innerHTML = `<h4 class="font-bold text-white text-sm mb-3 border-l-2 border-indigo-500 pl-2">${new Date(y,m).toLocaleString('default',{month:'long'})}</h4>`;
-                    groups[y][m].sort((a,b)=>b.dObj-a.dObj).forEach(f => { mDiv.innerHTML += `<div class="flex justify-between items-center text-sm py-2 hover:bg-slate-700/30 -mx-2 px-2 rounded-lg transition-colors"><span class="truncate w-3/4 font-medium text-slate-300">${f.title}</span><span class="text-slate-500 text-xs font-mono">${f.dObj.toLocaleDateString(undefined,{month:'numeric',day:'numeric'})}</span></div>`; });
-                    yDiv.appendChild(mDiv);
+            Object.keys(groups).sort((a,b)=>b-a).forEach(m => {
+                const monthName = new Date(selectedYear, m).toLocaleString('default', { month: 'long' });
+                const mDiv = document.createElement('div'); 
+                mDiv.className = 'bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden mb-4';
+                mDiv.innerHTML = `<div class="bg-slate-700/50 px-5 py-3 font-bold flex justify-between"><span class="text-indigo-300 font-heading">${monthName}</span><span class="badge bg-slate-600 text-white">${groups[m].length}</span></div><div class="p-3 space-y-2"></div>`;
+                const contentBox = mDiv.querySelector('div:last-child');
+                
+                groups[m].sort((a,b)=>b.dObj-a.dObj).forEach(f => {
+                    contentBox.innerHTML += `<div class="flex justify-between items-center text-sm py-2 px-2 hover:bg-slate-700/30 rounded-lg"><span class="truncate w-3/4 font-medium text-slate-300">${f.title}</span><span class="text-slate-500 text-xs font-mono">${f.dObj.getDate()}</span></div>`;
                 });
-                container.appendChild(yDiv);
+                container.appendChild(mDiv);
             });
         }
 
