@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker</title>
+    <title>FicLib Tracker v25</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -49,9 +49,9 @@
             content: ''; position: absolute; top: -4px; right: 10px; left: 10px; height: 4px;
             background: rgba(129, 140, 248, 0.2); border-radius: 4px 4px 0 0;
         }
-
         .input-field { 
             width: 100%;
+            min-width: 0;
             max-width: 100%; 
             box-sizing: border-box;
             background-color: var(--bg-input); 
@@ -62,6 +62,8 @@
             font-size: 0.9rem; 
             font-family: 'Inter', sans-serif; 
             transition: all 0.2s;
+            appearance: none; 
+            -webkit-appearance: none;
         }
         .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 
@@ -74,15 +76,17 @@
             display: inline-flex; 
             align-items: center; 
             padding: 0.25rem 0.5rem; 
-            border-radius: 0.5rem;
+            border-radius: 0.5rem; 
             font-size: 0.65rem; 
             font-weight: 700; 
             text-transform: uppercase; 
             letter-spacing: 0.05em;
             white-space: normal;
+            word-break: break-word;
             text-align: left;
             line-height: 1.2;
             height: auto;
+            max-width: 100%;
         }
         
         .tag-chip { font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8; }
@@ -321,7 +325,7 @@
                         <select id="inpReadStatus" class="input-field custom-select bg-slate-800" onchange="toggleDateVisibility()"><option value="unread">Unread</option><option value="read">Read</option></select>
                         <select id="inpStatus" class="input-field custom-select bg-slate-800"><option value="wip">WIP</option><option value="complete">Complete</option></select>
                     </div>
-                    <div id="divDateFinished" class="hidden w-full animate-fade-in"><label class="text-xs text-emerald-400 font-bold ml-1 mb-1 block">Date Finished</label><input type="date" id="inpDateFinished" class="input-field bg-slate-800"></div>
+                    <div id="divDateFinished" class="hidden w-full animate-fade-in"><label class="text-xs text-emerald-400 font-bold ml-1 mb-1 block">Date Finished</label><input type="date" id="inpDateFinished" class="input-field bg-slate-800 w-full min-w-0"></div>
                     <select id="inpCoverStatus" class="input-field custom-select bg-slate-800"><option value="not">No Cover</option><option value="yes">Cover Made</option></select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
@@ -406,7 +410,6 @@
                 renderMonthlyStats();
             }
         }
-
         function populateFilterDropdowns() {
             const shipSet = new Set(), tagSet = new Set();
             fics.forEach(f => { (f.ships || []).forEach(s => shipSet.add(s.trim())); (f.tags || []).forEach(t => tagSet.add(t.trim())); });
@@ -463,7 +466,6 @@
         }
 
         function calculateTime(words) { if(!words) return ""; const wpm = parseInt(localStorage.getItem('ficLibWPM')) || 250; const min = Math.ceil(words / wpm); const h = Math.floor(min / 60); const m = min % 60; return h > 0 ? `${h}h ${m}m` : `${m}min`; }
-
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
             const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
@@ -480,18 +482,15 @@
             const toggleId = `toggle-${f.id}`;
             const showToggle = hasSummary || hasNotes || hasTags;
             const toggleBtn = showToggle ? `<button onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden')" class="text-slate-500 hover:text-white transition-colors p-1"><i class="fa-solid fa-chevron-down"></i></button>` : '';
-
-            const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>` : '';
-            const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${f.summary}</div>` : '';
-            const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${f.notes}</div>` : '';
-
             const item = document.createElement('div');
             item.className = 'fic-card p-4 rounded-xl relative group mb-3';
             item.onclick = (e) => { if(!e.target.closest('button')) openEditModal(f.id); };
             item.innerHTML = `
                 <div class="flex justify-between">
                     <div class="flex-1 min-w-0 pr-3">
-                        <div class="flex items-start justify-between"><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1 truncate max-w-[120px]">${f.fandom || 'No Fandom'}</span></div>
+                        <div class="flex items-start justify-between">
+                            <span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1">${f.fandom || 'No Fandom'}</span>
+                        </div>
                         ${seriesHtml}
                         <h3 class="font-bold text-lg text-white truncate leading-tight mt-0.5 mb-0.5">${f.title}</h3>
                         <p class="text-xs text-slate-400 mb-2 truncate">${f.author || 'Unknown'}</p>
@@ -503,7 +502,11 @@
                         <div class="text-[10px] text-slate-500 text-right font-mono mt-auto"><span class="block text-white font-bold">${readTime}</span><span class="block">${(f.wordcount||0).toLocaleString()}w</span>${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}</div>
                     </div>
                 </div>
-                <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">${tagsBlock}${summaryBlock}${notesBlock}</div>`;
+                <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">
+                    ${hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>` : ''}
+                    ${hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${f.summary}</div>` : ''}
+                    ${hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${f.notes}</div>` : ''}
+                </div>`;
             container.appendChild(item);
         }
 
@@ -513,22 +516,19 @@
             div.innerHTML = `<div class="p-4 flex justify-between items-center bg-slate-800/80 backdrop-blur-sm z-10 relative"><div class="flex-1"><div class="flex items-center gap-2 mb-1"><span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Series</span><span class="text-[10px] text-slate-400 uppercase font-bold">${series.fandom}</span></div><h3 class="font-bold text-lg text-white leading-tight">${series.title}</h3><p class="text-xs text-slate-400 mt-1">${series.items.length} Works • ${series.totalWords.toLocaleString()} words</p></div><div class="pl-4 text-slate-500"><i class="fa-solid fa-chevron-down chevron-icon transition-transform duration-300"></i></div></div><div class="series-content hidden bg-slate-900/50 p-3 space-y-2 border-t border-slate-700/50 animate-fade-in"></div>`;
             const contentBox = div.querySelector('.series-content'); series.items.forEach(f => renderFicCard(f, contentBox)); container.appendChild(div);
         }
-
         function renderDiscovery() {
             const container = document.getElementById('discoveryList');
             const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
             if (unread.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read!</div>'; return; }
             container.innerHTML = '';
-    
             const shuffled = [...unread].sort(() => 0.5 - Math.random()).slice(0, 5);
             shuffled.forEach(f => {
                 const card = document.createElement('div'); card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
                 const cwHtml = (f.cws || []).map(c => `<span class="cw-chip">${c}</span>`).join('');
-                card.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="text-[10px] font-bold text-slate-500 uppercase">${f.fandom}</span><h3 class="text-xl font-bold text-white leading-tight">${f.title}</h3><p class="text-sm text-slate-400">by ${f.author}</p></div></div><div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div><div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary.'}</div><div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words • ${calculateTime(f.wordcount)}</span><button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">Details</button></div>`;
+                card.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mb-1">${f.fandom}</span><h3 class="text-xl font-bold text-white leading-tight mt-1">${f.title}</h3><p class="text-sm text-slate-400">by ${f.author}</p></div></div><div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div><div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary.'}</div><div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words • ${calculateTime(f.wordcount)}</span><button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">Details</button></div>`;
                 container.appendChild(card);
             });
         }
-
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
             document.getElementById('stat-total').innerText = fics.length;
@@ -540,7 +540,7 @@
 
             renderPieChart('chartFandoms', readFics, f => f.fandom, 'fandoms');
             renderPieChart('chartShips', readFics, f => f.ships, 'ships');
-            renderPieChart('chartTags', readFics, f => f.tags, 'tags'); // Reintroduced
+            renderPieChart('chartTags', readFics, f => f.tags, 'tags'); 
             updateGoalUI();
         }
 
@@ -587,7 +587,6 @@
             if (chartInstances[instanceName]) chartInstances[instanceName].destroy();
             chartInstances[instanceName] = new Chart(ctx, { type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#1e293b', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } } } } });
         }
-
         function toggleGoalEdit() { const editor = document.getElementById('goalEditor'); editor.classList.toggle('hidden'); if(!editor.classList.contains('hidden')) { document.getElementById('goalType').value = readingGoal.type; document.getElementById('goalNumber').value = readingGoal.amount || ''; } }
         function saveGoal() { const type = document.getElementById('goalType').value; const amount = parseInt(document.getElementById('goalNumber').value); if(amount > 0) { readingGoal = { type, amount }; localStorage.setItem('ficLibGoal', JSON.stringify(readingGoal)); toggleGoalEdit(); updateGoalUI(); } else { alert("Please enter a valid number."); } }
         function updateGoalUI() {
@@ -599,9 +598,8 @@
             document.getElementById('goalTextTarget').innerText = `/ ${target.toLocaleString()} ${readingGoal.type}`;
             document.getElementById('goalProgressBar').style.width = `${pct}%`; document.getElementById('goalProgressBar').innerText = `${pct}%`;
             const msg = document.getElementById('goalMessage');
-            if(currentVal >= target && target > 1) { msg.innerText = "Goal Reached! Amazing!"; msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; } else { msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`; msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; }
+            if(currentVal >= target && target > 1) { msg.innerText = "🎉 Goal Reached! Amazing!"; msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; } else { msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`; msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; }
         }
-
         function updateReport() {
             const finished = fics.filter(f => f.rereadStatus === 'read' && f.dateFinished);
             const container = document.getElementById('reportContent');
@@ -612,9 +610,7 @@
                 container.innerHTML = '<div class="text-center text-slate-600 py-10">No finished dates logged</div>';
                 picker.style.display = 'none'; statsHeader.style.display = 'none'; return;
             }
-
             const years = [...new Set(finished.map(f => parseDateLocal(f.dateFinished).getFullYear()))].sort((a,b) => b-a);
-            
             if(picker.children.length === 0) {
                 years.forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; picker.appendChild(opt); });
                 picker.value = years[0];
@@ -626,7 +622,6 @@
             const yearWords = yearFics.reduce((s,f) => s + (f.wordcount || 0), 0);
             document.getElementById('hist-year-words').innerText = yearWords.toLocaleString();
             document.getElementById('hist-year-count').innerText = yearFics.length;
-
             const groups = {};
             yearFics.forEach(f => { const d = parseDateLocal(f.dateFinished); const m = d.getMonth(); if(!groups[m]) groups[m]=[]; groups[m].push({...f, dObj: d}); });
             
@@ -644,7 +639,6 @@
                 container.appendChild(mDiv);
             });
         }
-
         function parseDateLocal(input) { if(!input) return null; if(typeof input==='number') return new Date((input+978307200)*1000); if(typeof input==='string' && input.includes('-') && input.length===10) { const [y,m,d]=input.split('-').map(Number); return new Date(y,m-1,d); } return new Date(input); }
         function pickSuggestion(id, selId) { const sel=document.getElementById(selId); const val=sel.value; if(!val)return; const inp=document.getElementById(id); const cur=inp.value.trim(); inp.value=cur.length===0?val:(!cur.includes(val)?cur+', '+val:cur); sel.value=""; }
         function toggleDateVisibility() { const s=document.getElementById('inpReadStatus').value; document.getElementById('divDateFinished').classList.toggle('hidden', s!=='read'); if(s==='read' && !document.getElementById('inpDateFinished').value) document.getElementById('inpDateFinished').valueAsDate = new Date(); }
@@ -690,4 +684,3 @@
     </script>
 </body>
 </html>
-
