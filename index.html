@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v25</title>
+    <title>FicLib Tracker v26</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -49,44 +49,46 @@
             content: ''; position: absolute; top: -4px; right: 10px; left: 10px; height: 4px;
             background: rgba(129, 140, 248, 0.2); border-radius: 4px 4px 0 0;
         }
+
         .input-field { 
-            width: 100%;
-            min-width: 0;
-            max-width: 100%; 
-            box-sizing: border-box;
-            background-color: var(--bg-input); 
-            padding: 0.8rem; 
-            border-radius: 0.75rem; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            color: white; 
-            font-size: 0.9rem; 
-            font-family: 'Inter', sans-serif; 
-            transition: all 0.2s;
-            appearance: none; 
-            -webkit-appearance: none;
+            width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
+            background-color: var(--bg-input); padding: 0.8rem; 
+            border-radius: 0.75rem; border: 1px solid rgba(255,255,255,0.1); 
+            color: white; font-size: 0.9rem; font-family: 'Inter', sans-serif; 
+            transition: all 0.2s; appearance: none; -webkit-appearance: none;
         }
         .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-
+        .filter-dropdown {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: var(--bg-input);
+            color: white;
+            font-size: 0.75rem;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            padding-left: 0.75rem;
+            padding-right: 2rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
+            width: auto;
+            white-space: nowrap;
+            
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.2em 1.2em;
+        }
+        
         .custom-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.2em 1.2em;
             padding-right: 2.5rem; -webkit-appearance: none; appearance: none;
         }
+
         .badge { 
-            display: inline-flex; 
-            align-items: center; 
-            padding: 0.25rem 0.5rem; 
-            border-radius: 0.5rem; 
-            font-size: 0.65rem; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.05em;
-            white-space: normal;
-            word-break: break-word;
-            text-align: left;
-            line-height: 1.2;
-            height: auto;
-            max-width: 100%;
+            display: inline-flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.5rem; 
+            font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+            white-space: normal; word-break: break-word; text-align: left; line-height: 1.2; height: auto; max-width: 100%;
         }
         
         .tag-chip { font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8; }
@@ -142,17 +144,17 @@
                 </div>
                 
                 <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                    <select id="filterStatus" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                    <select id="filterStatus" onchange="renderLibrary()" class="filter-dropdown">
                         <option value="all">Reading: All</option><option value="read">Read</option><option value="unread">Unread</option>
                     </select>
-                    <select id="filterCompletion" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Status: All</option><option value="complete">Complete</option><option value="wip">WIP</option></select>
-                    <select id="filterCover" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Cover: All</option><option value="yes">Has Cover</option><option value="not">No Cover</option></select>
-                    <select id="filterShips" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Ship: All</option></select>
-                    <select id="filterTags" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select"><option value="all">Tag: All</option></select>
-                    <select id="filterChapters" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                    <select id="filterCompletion" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Status: All</option><option value="complete">Complete</option><option value="wip">WIP</option></select>
+                    <select id="filterCover" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Cover: All</option><option value="yes">Has Cover</option><option value="not">No Cover</option></select>
+                    <select id="filterShips" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Ship: All</option></select>
+                    <select id="filterTags" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Tag: All</option></select>
+                    <select id="filterChapters" onchange="renderLibrary()" class="filter-dropdown">
                         <option value="all">Length: Any</option><option value="short">Short (<10)</option><option value="medium">Medium (10-50)</option><option value="long">Long (>50)</option>
                     </select>
-                    <select id="sortOption" onchange="renderLibrary()" class="input-field py-2 text-xs w-auto whitespace-nowrap custom-select">
+                    <select id="sortOption" onchange="renderLibrary()" class="filter-dropdown">
                         <option value="date">Newest</option><option value="az">A-Z</option><option value="words">Word Count</option>
                     </select>
                 </div>
@@ -338,8 +340,8 @@
                     <div><label class="text-xs font-bold text-indigo-400 ml-1 uppercase tracking-wide"><i class="fa-regular fa-note-sticky mr-1"></i> My Notes</label><textarea id="inpNotes" placeholder="Personal thoughts..." rows="2" class="input-field border-indigo-500/30 bg-indigo-500/5 text-sm"></textarea></div>
                 </div>
                 <div class="space-y-3 pt-2 border-t border-slate-700">
-                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
-                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used...</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used...</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
                 </div>
                 <div class="flex gap-3 mt-6 pt-4 border-t border-slate-700">
                     <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-400 p-3 rounded-xl font-bold w-1/4 transition-colors border border-red-500/20"><i class="fa-solid fa-trash"></i></button>
