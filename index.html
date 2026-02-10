@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v27</title>
+    <title>FicLib Tracker v28</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -234,17 +234,11 @@
                     <div class="relative"><span class="absolute right-2 top-3 text-[10px] text-slate-500">Part#</span><input type="number" id="inpSeriesPart" placeholder="1" class="input-field text-sm bg-slate-800"></div>
                 </div>
                 <div class="relative"><i class="fa-solid fa-link absolute left-3 top-3.5 text-slate-500 text-xs"></i><input type="url" id="inpLink" placeholder="AO3 / Wattpad Link" class="input-field pl-8 text-sm"></div>
-                
                 <div class="p-4 bg-slate-700/30 rounded-xl space-y-3 border border-slate-700">
                     <div class="grid grid-cols-2 gap-3">
-                        <select id="inpReadStatus" class="input-field custom-select bg-slate-800" onchange="toggleDateVisibility()">
-                            <option value="unread">Unread</option>
-                            <option value="reading">Reading</option>
-                            <option value="read">Read</option>
-                        </select>
+                        <select id="inpReadStatus" class="input-field custom-select bg-slate-800" onchange="toggleDateVisibility()"><option value="unread">Unread</option><option value="reading">Reading</option><option value="read">Read</option></select>
                         <select id="inpStatus" class="input-field custom-select bg-slate-800"><option value="wip">WIP</option><option value="complete">Complete</option></select>
                     </div>
-                    
                     <div id="divDateFinished" class="hidden w-full animate-fade-in space-y-2">
                         <label class="text-xs text-emerald-400 font-bold ml-1 block">Finished Dates</label>
                         <div id="dateListContainer" class="space-y-2 mb-2"></div>
@@ -253,22 +247,17 @@
                             <button type="button" onclick="addFinishDate()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 rounded-lg text-xs font-bold whitespace-nowrap">Add</button>
                         </div>
                     </div>
-                    
                     <select id="inpCoverStatus" class="input-field custom-select bg-slate-800"><option value="not">No Cover</option><option value="yes">Cover Made</option></select>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">words</span><input type="number" id="inpWords" placeholder="0" class="input-field"></div>
-                    <div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">ch.</span><input type="number" id="inpChapters" placeholder="0" class="input-field"></div>
-                </div>
+                <div class="grid grid-cols-2 gap-3"><div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">words</span><input type="number" id="inpWords" placeholder="0" class="input-field"></div><div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">ch.</span><input type="number" id="inpChapters" placeholder="0" class="input-field"></div></div>
                 <div class="space-y-3">
                     <div><label class="text-xs font-bold text-slate-400 ml-1 uppercase tracking-wide">Summary</label><textarea id="inpSummary" placeholder="Paste official summary..." rows="3" class="input-field text-sm leading-relaxed text-slate-300"></textarea></div>
                     <div><label class="text-xs font-bold text-red-400 ml-1 uppercase tracking-wide"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Content Warnings</label><textarea id="inpCW" placeholder="Major Character Death, Violence..." rows="1" class="input-field border-red-500/30 bg-red-500/5 text-sm"></textarea></div>
                     <div><label class="text-xs font-bold text-indigo-400 ml-1 uppercase tracking-wide"><i class="fa-regular fa-note-sticky mr-1"></i> My Notes</label><textarea id="inpNotes" placeholder="Personal thoughts..." rows="2" class="input-field border-indigo-500/30 bg-indigo-500/5 text-sm"></textarea></div>
                 </div>
                 <div class="space-y-3 pt-2 border-t border-slate-700">
-                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
-                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used...</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
+                    <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used...</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
                 </div>
                 <div class="flex gap-3 mt-6 pt-4 border-t border-slate-700">
                     <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-400 p-3 rounded-xl font-bold w-1/4 transition-colors border border-red-500/20"><i class="fa-solid fa-trash"></i></button>
@@ -297,9 +286,7 @@
                         if(f.cover_status) { f.coverStatus = f.cover_status; delete f.cover_status; }
                         if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
                         if(f.date_finished) { f.dateFinished = f.date_finished; delete f.date_finished; }
-                        if(!f.finishedDates) {
-                            f.finishedDates = f.dateFinished ? [f.dateFinished] : [];
-                        }
+                        if(!f.finishedDates) f.finishedDates = f.dateFinished ? [f.dateFinished] : [];
                     });
                 } catch(e) { console.error("Data load error", e); fics = []; }
                 renderLibrary();
@@ -312,8 +299,6 @@
             document.getElementById('goalTitleYear').innerText = `${new Date().getFullYear()} Reading Goal`;
             document.getElementById('monthPicker').value = new Date().toISOString().slice(0, 7);
         });
-
-        function parseDateLocal(input) { if(!input) return null; if(typeof input==='number') return new Date((input+978307200)*1000); if(typeof input==='string' && input.includes('-') && input.length===10) { const [y,m,d]=input.split('-').map(Number); return new Date(y,m-1,d); } return new Date(input); }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -329,6 +314,7 @@
         function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); updateReport(); }
         function saveWPM() { localStorage.setItem('ficLibWPM', document.getElementById('inpWPM').value); renderLibrary(); }
 
+        // --- FILTER & LIBRARY RENDER ---
         function populateFilterDropdowns() {
             const shipSet = new Set(), tagSet = new Set();
             fics.forEach(f => { (f.ships || []).forEach(s => shipSet.add(s.trim())); (f.tags || []).forEach(t => tagSet.add(t.trim())); });
@@ -375,7 +361,6 @@
                 Object.keys(groups).forEach(seriesName => {
                     const seriesFics = groups[seriesName];
                     seriesFics.sort((a,b) => (a.seriesPart || 0) - (b.seriesPart || 0));
-
                     const dates = seriesFics.map(f => {
                         const lastDate = f.finishedDates && f.finishedDates.length ? f.finishedDates[f.finishedDates.length-1] : null; 
                         const d = parseDateLocal(lastDate); return d ? d.getTime() : 0; 
@@ -403,13 +388,12 @@
 
         function renderFicCard(f, container) {
             const isRead = f.rereadStatus === 'read';
-            const isReading = f.rereadStatus === 'reading'; 
+            const isReading = f.rereadStatus === 'reading';
             const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
             
             const statusBadge = isComplete ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
             const coverBadge = f.coverStatus === 'yes' ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' : '';
             
-        
             let readBadge = '';
             if (isRead) readBadge = '<span class="text-emerald-400 text-xs flex items-center gap-1"><i class="fa-solid fa-check"></i> Read</span>';
             if (isReading) readBadge = '<span class="text-blue-400 text-xs flex items-center gap-1"><i class="fa-solid fa-book-open-reader"></i> Reading</span>';
@@ -425,6 +409,10 @@
             const toggleId = `toggle-${f.id}`;
             const showToggle = hasSummary || hasNotes || hasTags;
             const toggleBtn = showToggle ? `<button onclick="event.stopPropagation(); document.getElementById('${toggleId}').classList.toggle('hidden')" class="text-slate-500 hover:text-white transition-colors p-1"><i class="fa-solid fa-chevron-down"></i></button>` : '';
+
+            const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>` : '';
+            const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${f.summary}</div>` : '';
+            const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${f.notes}</div>` : '';
 
             const item = document.createElement('div');
             item.className = 'fic-card p-4 rounded-xl relative group mb-3';
@@ -444,11 +432,7 @@
                         <div class="text-[10px] text-slate-500 text-right font-mono mt-auto"><span class="block text-white font-bold">${readTime}</span><span class="block">${(f.wordcount||0).toLocaleString()}w</span>${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}</div>
                     </div>
                 </div>
-                <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">
-                    ${hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div>` : ''}
-                    ${hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${f.summary}</div>` : ''}
-                    ${hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${f.notes}</div>` : ''}
-                </div>`;
+                <div id="${toggleId}" class="hidden mt-2 border-t border-slate-700/50 animate-fade-in">${tagsBlock}${summaryBlock}${notesBlock}</div>`;
             container.appendChild(item);
         }
 
@@ -459,14 +443,14 @@
             const contentBox = div.querySelector('.series-content'); series.items.forEach(f => renderFicCard(f, contentBox)); container.appendChild(div);
         }
 
+        // --- DASHBOARD LOGIC ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
-        
             let totalReadWords = 0;
             let totalReads = 0;
             
             readFics.forEach(f => {
-                const readCount = (f.finishedDates && f.finishedDates.length > 0) ? f.finishedDates.length : 1; // Default to 1 if empty for safety
+                const readCount = (f.finishedDates && f.finishedDates.length > 0) ? f.finishedDates.length : 1; 
                 totalReadWords += (f.wordcount || 0) * readCount;
                 totalReads += readCount;
             });
@@ -489,7 +473,6 @@
             if(!pickerVal) return;
             const [year, month] = pickerVal.split('-').map(Number);
             
-    
             const monthFics = [];
             let wordsInMonth = 0;
             
@@ -536,7 +519,7 @@
             renderList('month-top-tags', f => f.tags);
         }
 
-        
+        // --- GOAL UPDATE ---
         function updateGoalUI() {
             const currentYear = new Date().getFullYear();
             let finishedThisYearCount = 0;
@@ -562,10 +545,10 @@
             document.getElementById('goalProgressBar').style.width = `${pct}%`; document.getElementById('goalProgressBar').innerText = `${pct}%`;
             
             const msg = document.getElementById('goalMessage');
-            if(currentVal >= target && target > 1) { msg.innerText = "Goal Reached! Amazing!"; msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; } else { msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`; msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; }
+            if(currentVal >= target && target > 1) { msg.innerText = "🎉 Goal Reached! Amazing!"; msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; } else { msg.innerText = `Tracking ${readingGoal.type} for ${currentYear}`; msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; }
         }
 
-        
+        // --- HISTORY REPORT UPDATE ---
         function updateReport() {
             const container = document.getElementById('reportContent');
             const picker = document.getElementById('historyYearPicker');
@@ -619,51 +602,7 @@
             });
         }
 
-
-        function toggleDateVisibility() { 
-            const s=document.getElementById('inpReadStatus').value; 
-            const dateDiv = document.getElementById('divDateFinished');
-            dateDiv.classList.toggle('hidden', s !== 'read');
-            
-            if (s === 'read' && tempDates.length === 0 && document.getElementById('editId').value === '') {
-                
-            }
-        }
-
-        function openEditModal(id) {
-            const f=fics.find(x=>x.id===id); if(!f)return;
-            document.getElementById('editId').value=f.id; document.getElementById('modalTitle').innerText='Edit Fic';
-            
-            ['inpTitle','inpAuthor','inpFandom','inpStatus','inpSummary','inpNotes'].forEach(k=>document.getElementById(k).value=f[k.replace('inp','').toLowerCase()]||'');
-            document.getElementById('inpLink').value = f.originalLink || '';
-            document.getElementById('inpWords').value = f.wordcount || '';
-            document.getElementById('inpChapters').value = f.chapters || '';
-            document.getElementById('inpReadStatus').value=f.rereadStatus||'unread'; document.getElementById('inpCoverStatus').value=f.coverStatus||'not';
-            document.getElementById('inpSeries').value=f.series||''; document.getElementById('inpSeriesPart').value=f.seriesPart||'';
-            document.getElementById('inpShips').value=(f.ships||[]).join(', '); document.getElementById('inpTags').value=(f.tags||[]).join(', ');
-            document.getElementById('inpCW').value=(f.cws||[]).join(', ');
-
-            
-            tempDates = f.finishedDates ? [...f.finishedDates] : [];
-            renderDateList();
-
-            document.getElementById('btnDelete').classList.remove('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden');
-        }
-
-        function openAddModal() { 
-            document.getElementById('ficForm').reset(); 
-            document.getElementById('editId').value=''; 
-            document.getElementById('modalTitle').innerText='Add New Fic'; 
-            document.getElementById('btnDelete').classList.add('hidden'); 
-            
-            tempDates = [];
-            renderDateList();
-            
-            toggleDateVisibility(); 
-            document.getElementById('ficModal').classList.remove('hidden'); 
-        }
-
-        
+        // --- DATE MODAL LOGIC ---
         function renderDateList() {
             const container = document.getElementById('dateListContainer');
             container.innerHTML = '';
@@ -690,22 +629,9 @@
             renderDateList();
         }
 
-        
+        // --- SHARED UTILS ---
         function pickSuggestion(id, selId) { const sel=document.getElementById(selId); const val=sel.value; if(!val)return; const inp=document.getElementById(id); const cur=inp.value.trim(); inp.value=cur.length===0?val:(!cur.includes(val)?cur+', '+val:cur); sel.value=""; }
-        function switchStatsView(view) {
-            document.getElementById('view-stats-global').classList.toggle('hidden', view !== 'global');
-            document.getElementById('view-stats-monthly').classList.toggle('hidden', view !== 'monthly');
-            const btnGlobal = document.getElementById('btn-stats-global');
-            const btnMonthly = document.getElementById('btn-stats-monthly');
-            if(view === 'global') {
-                btnGlobal.classList.add('tab-btn-active'); btnGlobal.classList.remove('tab-btn-inactive');
-                btnMonthly.classList.remove('tab-btn-active'); btnMonthly.classList.add('tab-btn-inactive');
-            } else {
-                btnMonthly.classList.add('tab-btn-active'); btnMonthly.classList.remove('tab-btn-inactive');
-                btnGlobal.classList.remove('tab-btn-active'); btnGlobal.classList.add('tab-btn-inactive');
-                renderMonthlyStats();
-            }
-        }
+        function parseDateLocal(input) { if(!input) return null; if(typeof input==='number') return new Date((input+978307200)*1000); if(typeof input==='string' && input.includes('-') && input.length===10) { const [y,m,d]=input.split('-').map(Number); return new Date(y,m-1,d); } return new Date(input); }
         function renderPieChart(canvasId, list, keyFn, instanceName) {
             const counts = {};
             list.forEach(f => { const keys = keyFn(f); if (Array.isArray(keys)) keys.forEach(k => counts[k] = (counts[k] || 0) + 1); else if (keys) counts[keys] = (counts[keys] || 0) + 1; });
@@ -716,19 +642,73 @@
             if (chartInstances[instanceName]) chartInstances[instanceName].destroy();
             chartInstances[instanceName] = new Chart(ctx, { type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#1e293b', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } } } } });
         }
-        function renderDiscovery() {
-            const container = document.getElementById('discoveryList');
-            const unread = fics.filter(f => (f.rereadStatus || 'unread') !== 'read');
-            if (unread.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read!</div>'; return; }
-            container.innerHTML = '';
-            const shuffled = [...unread].sort(() => 0.5 - Math.random()).slice(0, 5);
-            shuffled.forEach(f => {
-                const card = document.createElement('div'); card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
-                const cwHtml = (f.cws || []).map(c => `<span class="cw-chip">${c}</span>`).join('');
-                card.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mb-1">${f.fandom}</span><h3 class="text-xl font-bold text-white leading-tight mt-1">${f.title}</h3><p class="text-sm text-slate-400">by ${f.author}</p></div></div><div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div><div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary.'}</div><div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words • ${calculateTime(f.wordcount)}</span><button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">Details</button></div>`;
-                container.appendChild(card);
-            });
+
+        // --- NEW MODAL LOGIC FOR DATES ---
+        function toggleDateVisibility() { 
+            const s=document.getElementById('inpReadStatus').value; 
+            const dateDiv = document.getElementById('divDateFinished');
+            dateDiv.classList.toggle('hidden', s !== 'read');
         }
+
+        function openEditModal(id) {
+            const f=fics.find(x=>x.id===id); if(!f)return;
+            document.getElementById('editId').value=f.id; document.getElementById('modalTitle').innerText='Edit Fic';
+            
+            ['inpTitle','inpAuthor','inpFandom','inpStatus','inpSummary','inpNotes'].forEach(k=>document.getElementById(k).value=f[k.replace('inp','').toLowerCase()]||'');
+            document.getElementById('inpLink').value = f.originalLink || '';
+            document.getElementById('inpWords').value = f.wordcount || '';
+            document.getElementById('inpChapters').value = f.chapters || '';
+            document.getElementById('inpReadStatus').value=f.rereadStatus||'unread'; document.getElementById('inpCoverStatus').value=f.coverStatus||'not';
+            document.getElementById('inpSeries').value=f.series||''; document.getElementById('inpSeriesPart').value=f.seriesPart||'';
+            document.getElementById('inpShips').value=(f.ships||[]).join(', '); document.getElementById('inpTags').value=(f.tags||[]).join(', ');
+            document.getElementById('inpCW').value=(f.cws||[]).join(', ');
+
+            // LOAD DATES
+            tempDates = f.finishedDates ? [...f.finishedDates] : [];
+            renderDateList();
+
+            document.getElementById('btnDelete').classList.remove('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden');
+        }
+
+        function openAddModal() { 
+            document.getElementById('ficForm').reset(); 
+            document.getElementById('editId').value=''; 
+            document.getElementById('modalTitle').innerText='Add New Fic'; 
+            document.getElementById('btnDelete').classList.add('hidden'); 
+            
+            tempDates = [];
+            renderDateList();
+            
+            toggleDateVisibility(); 
+            document.getElementById('ficModal').classList.remove('hidden'); 
+        }
+
+        function closeModal() { document.getElementById('ficModal').classList.add('hidden'); }
+        function deleteFic() { if(confirm("Delete this fic?")) { fics=fics.filter(f=>f.id!==document.getElementById('editId').value); saveData(); closeModal(); } }
+        
+        function handleFormSubmit(e) {
+            e.preventDefault(); const id=document.getElementById('editId').value;
+            // Determine legacy date automatically
+            const sortedDates = [...tempDates].sort();
+            const latestDate = sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null;
+
+            const obj = {
+                id: id||crypto.randomUUID(), title: document.getElementById('inpTitle').value, author: document.getElementById('inpAuthor').value, fandom: document.getElementById('inpFandom').value,
+                originalLink: document.getElementById('inpLink').value, rereadStatus: document.getElementById('inpReadStatus').value, coverStatus: document.getElementById('inpCoverStatus').value,
+                status: document.getElementById('inpStatus').value, wordcount: parseInt(document.getElementById('inpWords').value)||0, chapters: parseInt(document.getElementById('inpChapters').value)||0,
+                summary: document.getElementById('inpSummary').value, notes: document.getElementById('inpNotes').value,
+                ships: document.getElementById('inpShips').value.split(',').map(s=>s.trim()).filter(s=>s), tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
+                cws: document.getElementById('inpCW').value.split(',').map(s=>s.trim()).filter(s=>s),
+                finishedDates: [...tempDates],
+                dateFinished: latestDate,
+                series: document.getElementById('inpSeries').value.trim(), seriesPart: parseInt(document.getElementById('inpSeriesPart').value)||0
+            };
+            if(id) { const idx=fics.findIndex(x=>x.id===id); fics[idx]={...fics[idx], ...obj}; } else fics.unshift(obj);
+            saveData(); closeModal();
+        }
+        function handleFileUpload(e) { const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=(ev)=>{ try{ const j=JSON.parse(ev.target.result); fics=Array.isArray(j)?j:(j.fics||[]); saveData(); alert(`Loaded ${fics.length} fics.`); switchTab('library'); }catch(err){alert("Invalid backup.");} }; r.readAsText(f); }
+        function exportData() { const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({database_version:"1.0",fics:fics},null,2)); a.download="ficlib_backup.json"; document.body.appendChild(a); a.click(); a.remove(); }
+        function clearData() { if(confirm("Delete ALL data?")) { fics=[]; saveData(); switchTab('library'); } }
     </script>
 </body>
 </html>
