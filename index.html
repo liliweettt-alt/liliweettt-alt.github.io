@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v28</title>
+    <title>FicLib Tracker v29</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -119,10 +119,7 @@
                 <div class="relative"><i class="fa-solid fa-search absolute left-3 top-3.5 text-slate-500 text-sm"></i><input type="text" id="searchInput" placeholder="Search title, series, tags..." class="input-field pl-9" onkeyup="renderLibrary()"></div>
                 <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                     <select id="filterStatus" onchange="renderLibrary()" class="filter-dropdown">
-                        <option value="all">Reading: All</option>
-                        <option value="reading">Currently Reading</option>
-                        <option value="read">Read</option>
-                        <option value="unread">Unread</option>
+                        <option value="all">Reading: All</option><option value="reading">Currently Reading</option><option value="read">Read</option><option value="unread">Unread</option>
                     </select>
                     <select id="filterCompletion" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Status: All</option><option value="complete">Complete</option><option value="wip">WIP</option></select>
                     <select id="filterCover" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Cover: All</option><option value="yes">Has Cover</option><option value="not">No Cover</option></select>
@@ -158,7 +155,7 @@
                     </div>
                     <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 text-center">
                         <div class="w-10 h-10 bg-purple-500/10 rounded-full flex items-center justify-center mx-auto mb-2 text-purple-400"><i class="fa-solid fa-layer-group"></i></div>
-                        <p class="text-slate-400 text-[10px] uppercase font-bold">Total Fics</p><p class="text-xl font-bold text-white mt-1" id="stat-total">0</p>
+                        <p class="text-slate-400 text-[10px] uppercase font-bold">Unique Fics</p><p class="text-xl font-bold text-white mt-1" id="stat-total">0</p>
                     </div>
                 </div>
                 <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 mb-6">
@@ -300,6 +297,8 @@
             document.getElementById('monthPicker').value = new Date().toISOString().slice(0, 7);
         });
 
+        function parseDateLocal(input) { if(!input) return null; if(typeof input==='number') return new Date((input+978307200)*1000); if(typeof input==='string' && input.includes('-') && input.length===10) { const [y,m,d]=input.split('-').map(Number); return new Date(y,m-1,d); } return new Date(input); }
+
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
@@ -313,6 +312,21 @@
         }
         function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); updateReport(); }
         function saveWPM() { localStorage.setItem('ficLibWPM', document.getElementById('inpWPM').value); renderLibrary(); }
+
+        function switchStatsView(view) {
+            document.getElementById('view-stats-global').classList.toggle('hidden', view !== 'global');
+            document.getElementById('view-stats-monthly').classList.toggle('hidden', view !== 'monthly');
+            const btnGlobal = document.getElementById('btn-stats-global');
+            const btnMonthly = document.getElementById('btn-stats-monthly');
+            if(view === 'global') {
+                btnGlobal.classList.add('tab-btn-active'); btnGlobal.classList.remove('tab-btn-inactive');
+                btnMonthly.classList.remove('tab-btn-active'); btnMonthly.classList.add('tab-btn-inactive');
+            } else {
+                btnMonthly.classList.add('tab-btn-active'); btnMonthly.classList.remove('tab-btn-inactive');
+                btnGlobal.classList.remove('tab-btn-active'); btnGlobal.classList.add('tab-btn-inactive');
+                renderMonthlyStats();
+            }
+        }
 
         // --- FILTER & LIBRARY RENDER ---
         function populateFilterDropdowns() {
@@ -443,23 +457,44 @@
             const contentBox = div.querySelector('.series-content'); series.items.forEach(f => renderFicCard(f, contentBox)); container.appendChild(div);
         }
 
+        // --- DISCOVERY FIXED ---
+        function renderDiscovery() {
+            const container = document.getElementById('discoveryList');
+            // Ensure we filter for unread (NOT reading and NOT read)
+            const unread = fics.filter(f => {
+                const s = f.rereadStatus || 'unread';
+                return s !== 'read' && s !== 'reading';
+            });
+            
+            if (unread.length === 0) { container.innerHTML = '<div class="text-center text-slate-500 py-10">All fics read!</div>'; return; }
+            container.innerHTML = '';
+            // New random array each time
+            const shuffled = [...unread].sort(() => 0.5 - Math.random()).slice(0, 5);
+            shuffled.forEach(f => {
+                const card = document.createElement('div'); card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
+                const cwHtml = (f.cws || []).map(c => `<span class="cw-chip">${c}</span>`).join('');
+                card.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mb-1">${f.fandom}</span><h3 class="text-xl font-bold text-white leading-tight mt-1">${f.title}</h3><p class="text-sm text-slate-400">by ${f.author}</p></div></div><div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${s}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${t}</span>`).join('')}</div><div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${f.summary || 'No summary.'}</div><div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${(f.wordcount||0).toLocaleString()} words • ${calculateTime(f.wordcount)}</span><button onclick="openEditModal('${f.id}')" class="text-xs text-slate-500 hover:text-white">Details</button></div>`;
+                container.appendChild(card);
+            });
+        }
+
         // --- DASHBOARD LOGIC ---
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
             let totalReadWords = 0;
-            let totalReads = 0;
+            // FIX: Total Fics is just the count of unique fics marked as read
+            let totalUniqueReads = readFics.length;
             
             readFics.forEach(f => {
                 const readCount = (f.finishedDates && f.finishedDates.length > 0) ? f.finishedDates.length : 1; 
                 totalReadWords += (f.wordcount || 0) * readCount;
-                totalReads += readCount;
             });
 
-            document.getElementById('stat-total').innerText = fics.length;
+            document.getElementById('stat-total').innerText = fics.length; // Fics in library
             document.getElementById('stat-words').innerText = totalReadWords.toLocaleString();
-            document.getElementById('stat-read-count').innerText = `Read: ${totalReads}`;
-            document.getElementById('stat-unread-count').innerText = `Unread: ${fics.length - readFics.length}`;
-            const pct = fics.length ? Math.round((readFics.length / fics.length) * 100) : 0;
+            document.getElementById('stat-read-count').innerText = `Read: ${totalUniqueReads}`;
+            document.getElementById('stat-unread-count').innerText = `Unread: ${fics.length - totalUniqueReads}`;
+            const pct = fics.length ? Math.round((totalUniqueReads / fics.length) * 100) : 0;
             const bar = document.getElementById('stat-progress-bar'); bar.style.width = `${pct}%`; bar.innerText = `${pct}%`;
 
             renderPieChart('chartFandoms', readFics, f => f.fandom, 'fandoms');
