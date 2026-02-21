@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v31</title>
+    <title>FicLib Tracker v32</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -291,7 +291,6 @@
             const stored = localStorage.getItem('ficLibData');
             const storedGoal = localStorage.getItem('ficLibGoal');
             const storedWPM = localStorage.getItem('ficLibWPM');
-            
             if(storedWPM) document.getElementById('inpWPM').value = storedWPM;
 
             if (stored) {
@@ -307,6 +306,7 @@
                 renderLibrary();
                 updateReport();
             }
+            
             if (storedGoal) { 
                 try { 
                     const parsed = JSON.parse(storedGoal); 
@@ -318,6 +318,8 @@
             document.getElementById('ficForm').addEventListener('submit', handleFormSubmit);
             document.getElementById('goalTitleYear').innerText = `${new Date().getFullYear()} Reading Goal`;
             document.getElementById('monthPicker').value = new Date().toISOString().slice(0, 7);
+        
+            switchStatsView('global');
         });
 
         function parseDateLocal(input) { if(!input) return null; if(typeof input==='number') return new Date((input+978307200)*1000); if(typeof input==='string' && input.includes('-') && input.length===10) { const [y,m,d]=input.split('-').map(Number); return new Date(y,m-1,d); } return new Date(input); }
@@ -328,12 +330,28 @@
             document.querySelectorAll('.nav-btn').forEach(el => { el.classList.remove('active', 'text-indigo-400'); el.classList.add('text-slate-500'); });
             const activeBtn = document.getElementById(`btn-${tab}`);
             activeBtn.classList.remove('text-slate-500'); activeBtn.classList.add('active', 'text-indigo-400');
-            if(tab === 'dashboard') updateDashboard();
+            
+            if(tab === 'dashboard') {
+                switchStatsView('global'); 
+            }
             if(tab === 'report') updateReport();
             if(tab === 'discovery') renderDiscovery();
             window.scrollTo(0,0);
         }
-        function saveData() { localStorage.setItem('ficLibData', JSON.stringify(fics)); renderLibrary(); updateReport(); }
+        
+        function saveData() { 
+            localStorage.setItem('ficLibData', JSON.stringify(fics)); 
+            renderLibrary(); 
+            updateReport(); 
+            if(!document.getElementById('tab-dashboard').classList.contains('hidden')) {
+                if(!document.getElementById('view-stats-global').classList.contains('hidden')) {
+                    updateDashboard();
+                } else {
+                    renderMonthlyStats();
+                }
+            }
+        }
+        
         function saveWPM() { localStorage.setItem('ficLibWPM', document.getElementById('inpWPM').value); renderLibrary(); }
 
         function switchStatsView(view) {
@@ -341,9 +359,11 @@
             document.getElementById('view-stats-monthly').classList.toggle('hidden', view !== 'monthly');
             const btnGlobal = document.getElementById('btn-stats-global');
             const btnMonthly = document.getElementById('btn-stats-monthly');
+            
             if(view === 'global') {
                 btnGlobal.classList.add('tab-btn-active'); btnGlobal.classList.remove('tab-btn-inactive');
                 btnMonthly.classList.remove('tab-btn-active'); btnMonthly.classList.add('tab-btn-inactive');
+                updateDashboard();
             } else {
                 btnMonthly.classList.add('tab-btn-active'); btnMonthly.classList.remove('tab-btn-inactive');
                 btnGlobal.classList.remove('tab-btn-active'); btnGlobal.classList.add('tab-btn-inactive');
@@ -494,7 +514,6 @@
                 container.appendChild(card);
             });
         }
-
         function updateDashboard() {
             const readFics = fics.filter(f => f.rereadStatus === 'read');
             const readingFics = fics.filter(f => f.rereadStatus === 'reading');
@@ -582,6 +601,35 @@
             renderList('month-top-ships', f => f.ships);
             renderList('month-top-tags', f => f.tags);
         }
+        function renderPieChart(canvasId, list, keyFn, instanceName) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            if (chartInstances[instanceName]) chartInstances[instanceName].destroy();
+
+            const counts = {};
+            list.forEach(f => { const keys = keyFn(f); if (Array.isArray(keys)) keys.forEach(k => counts[k] = (counts[k] || 0) + 1); else if (keys) counts[keys] = (counts[keys] || 0) + 1; });
+            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            if (sorted.length === 0) {
+                chartInstances[instanceName] = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: ['#334155'], borderColor: '#1e293b', borderWidth: 2 }] }, 
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } } 
+                });
+                return;
+            }
+
+            const labels = sorted.map(x => x[0]); 
+            const data = sorted.map(x => x[1]);
+            const colors = ['#818cf8', '#a78bfa', '#c084fc', '#6366f1', '#94a3b8'];
+            
+            chartInstances[instanceName] = new Chart(ctx, { 
+                type: 'doughnut', 
+                data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#1e293b', borderWidth: 2 }] }, 
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } } } } 
+            });
+        }
         function toggleGoalEdit() { 
             try {
                 const editor = document.getElementById('goalEditor'); 
@@ -596,9 +644,7 @@
                 } else {
                     editor.classList.add('hidden');
                 }
-            } catch (e) {
-                console.error("Error opening edit goal:", e);
-            }
+            } catch (e) { console.error("Error opening edit goal:", e); }
         }
         
         function saveGoal() { 
@@ -614,9 +660,7 @@
                 } else { 
                     alert("Please enter a valid number greater than 0."); 
                 } 
-            } catch (e) {
-                console.error("Error saving goal:", e);
-            }
+            } catch (e) { console.error("Error saving goal:", e); }
         }
         
         function updateGoalUI() {
@@ -639,6 +683,7 @@
             fics.filter(f => f.rereadStatus === 'reading').forEach(f => {
                 finishedThisYearWords += (f.readProgress || 0);
             });
+
             const safeType = (readingGoal && readingGoal.type) ? readingGoal.type : 'words';
             const target = (readingGoal && readingGoal.amount > 0) ? readingGoal.amount : 1; 
             
@@ -729,6 +774,7 @@
             tempDates.splice(index, 1);
             renderDateList();
         }
+
         function toggleDateVisibility() { 
             const s=document.getElementById('inpReadStatus').value; 
             document.getElementById('divDateFinished').classList.toggle('hidden', s !== 'read');
