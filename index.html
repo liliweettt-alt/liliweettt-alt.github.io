@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FicLib Tracker v32</title>
+    <title>FicLib Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -381,6 +381,49 @@
                 if(items.includes(currentVal)) select.value = currentVal;
             };
             fill('filterShips', Array.from(shipSet), 'Ship: All'); fill('filterTags', Array.from(tagSet), 'Tag: All');
+        }
+
+        function populateHelperDropdowns() {
+            const shipSet = new Set();
+            const tagSet = new Set();
+            
+            fics.forEach(f => { 
+                (f.ships || []).forEach(s => shipSet.add(s.trim())); 
+                (f.tags || []).forEach(t => tagSet.add(t.trim())); 
+            });
+            
+            const fillSelect = (id, items) => {
+                const select = document.getElementById(id);
+                if (!select) return;
+                
+                select.innerHTML = '<option value="">Select used</option>';
+                items.sort((a,b) => a.localeCompare(b)).forEach(item => { 
+                    if(item) { 
+                        const opt = document.createElement('option'); 
+                        opt.value = item; 
+                        opt.innerText = item; 
+                        select.appendChild(opt); 
+                    }
+                });
+            };
+            
+            fillSelect('selShipsHelper', Array.from(shipSet));
+            fillSelect('selTagsHelper', Array.from(tagSet));
+        }
+
+        function pickSuggestion(targetInputId, selectDropdownId) {
+            const select = document.getElementById(selectDropdownId);
+            const target = document.getElementById(targetInputId);
+            const selectedValue = select.value;
+            
+            if (selectedValue) {
+                let currentText = target.value.trim();
+                if (currentText && !currentText.endsWith(',')) {
+                    currentText += ', ';
+                }
+                target.value = currentText + selectedValue;
+            }
+            select.value = ''; 
         }
 
         function renderLibrary() {
@@ -799,6 +842,8 @@
             tempDates = f.finishedDates ? [...f.finishedDates] : [];
             renderDateList();
 
+            populateHelperDropdowns();
+
             document.getElementById('btnDelete').classList.remove('hidden'); toggleDateVisibility(); document.getElementById('ficModal').classList.remove('hidden');
         }
 
@@ -812,6 +857,9 @@
             renderDateList();
             
             toggleDateVisibility(); 
+
+            populateHelperDropdowns();
+
             document.getElementById('ficModal').classList.remove('hidden'); 
         }
 
