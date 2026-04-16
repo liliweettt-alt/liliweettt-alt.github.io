@@ -126,6 +126,7 @@
                     </select>
                     <select id="filterCompletion" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Status: All</option><option value="complete">Complete</option><option value="wip">WIP</option></select>
                     <select id="filterCover" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Cover: All</option><option value="yes">Has Cover</option><option value="not">No Cover</option></select>
+                    <select id="filterFandom" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Fandom: All</option></select>
                     <select id="filterShips" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Ship: All</option></select>
                     <select id="filterTags" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Tag: All</option></select>
                     <select id="filterChapters" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Length: Any</option><option value="short">Short (<10)</option><option value="medium">Medium (10-50)</option><option value="long">Long (>50)</option></select>
@@ -371,8 +372,12 @@
             }
         }
         function populateFilterDropdowns() {
-            const shipSet = new Set(), tagSet = new Set();
-            fics.forEach(f => { (f.ships || []).forEach(s => shipSet.add(s.trim())); (f.tags || []).forEach(t => tagSet.add(t.trim())); });
+            const shipSet = new Set(), tagSet = new Set(), fandomSet = new Set();
+            fics.forEach(f => { 
+                if(f.fandom) fandomSet.add(f.fandom.trim());
+                (f.ships || []).forEach(s => shipSet.add(s.trim())); 
+                (f.tags || []).forEach(t => tagSet.add(t.trim())); 
+            });
             const fill = (id, items, label) => {
                 const select = document.getElementById(id);
                 const currentVal = select.value;
@@ -380,7 +385,9 @@
                 items.sort((a,b) => a.localeCompare(b)).forEach(i => { if(i) { const opt = document.createElement('option'); opt.value = i; opt.innerText = i; select.appendChild(opt); }});
                 if(items.includes(currentVal)) select.value = currentVal;
             };
-            fill('filterShips', Array.from(shipSet), 'Ship: All'); fill('filterTags', Array.from(tagSet), 'Tag: All');
+            fill('filterFandom', Array.from(fandomSet), 'Fandom: All');
+            fill('filterShips', Array.from(shipSet), 'Ship: All'); 
+            fill('filterTags', Array.from(tagSet), 'Tag: All');
         }
 
         function populateHelperDropdowns() {
@@ -434,6 +441,7 @@
             const statusFilter = document.getElementById('filterStatus').value;
             const completionFilter = document.getElementById('filterCompletion').value;
             const coverFilter = document.getElementById('filterCover').value;
+            const fandomFilter = document.getElementById('filterFandom').value;
             const shipFilter = document.getElementById('filterShips').value;
             const tagFilter = document.getElementById('filterTags').value;
             const chapterFilter = document.getElementById('filterChapters').value;
@@ -444,6 +452,7 @@
                     if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
                     if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
                     if (coverFilter !== 'all') { const hasCover = (f.coverStatus === 'yes'); if (coverFilter === 'yes' && !hasCover) return false; if (coverFilter === 'not' && hasCover) return false; }
+                    if (fandomFilter !== 'all' && (!f.fandom || f.fandom.trim() !== fandomFilter)) return false;
                     if (shipFilter !== 'all' && (!f.ships || !f.ships.includes(shipFilter))) return false;
                     if (tagFilter !== 'all' && (!f.tags || !f.tags.includes(tagFilter))) return false;
                     const chaps = f.chapters || 0;
