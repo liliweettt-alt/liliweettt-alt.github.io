@@ -152,7 +152,21 @@ function populateFilterDropdowns() {
     fill('filterFandom', Array.from(fandomSet), 'Fandom: All');
     fill('filterShips', Array.from(shipSet), 'Ship: All'); 
     fill('filterTags', Array.from(tagSet), 'Tag: All');
-    fill('filterCW', Array.from(cwSet), 'CW: All');
+    fill('filterCW', Array.from(cwSet), 'Include CW: All');
+    
+    // Explicit logic for the Exclude CW dropdown (defaults to "none")
+    const excludeSelect = document.getElementById('filterExcludeCW');
+    const currentExclude = excludeSelect.value;
+    excludeSelect.innerHTML = `<option value="none">Exclude CW: None</option>`;
+    Array.from(cwSet).sort((a,b) => a.localeCompare(b)).forEach(i => { 
+        if(i) { 
+            const opt = document.createElement('option'); 
+            opt.value = i; 
+            opt.innerText = i; 
+            excludeSelect.appendChild(opt); 
+        }
+    });
+    if(Array.from(cwSet).includes(currentExclude)) excludeSelect.value = currentExclude;
 }
 
 function populateHelperDropdowns() {
@@ -208,13 +222,13 @@ function handleSearch() {
 function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('filterStatus').value = 'all';
-    document.getElementById('filterMatchMode').value = 'include';
     document.getElementById('filterCompletion').value = 'all';
     document.getElementById('filterCover').value = 'all';
     document.getElementById('filterFandom').value = 'all';
     document.getElementById('filterShips').value = 'all';
     document.getElementById('filterTags').value = 'all';
     document.getElementById('filterCW').value = 'all';
+    document.getElementById('filterExcludeCW').value = 'none';
     document.getElementById('filterChapters').value = 'all';
     renderLibrary();
 }
@@ -288,13 +302,13 @@ function renderLibrary() {
     list.innerHTML = '';
     const search = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('filterStatus').value;
-    const matchMode = document.getElementById('filterMatchMode').value;
     const completionFilter = document.getElementById('filterCompletion').value;
     const coverFilter = document.getElementById('filterCover').value;
     const fandomFilter = document.getElementById('filterFandom').value;
     const shipFilter = document.getElementById('filterShips').value;
     const tagFilter = document.getElementById('filterTags').value;
     const cwFilter = document.getElementById('filterCW').value;
+    const excludeCwFilter = document.getElementById('filterExcludeCW').value;
     const chapterFilter = document.getElementById('filterChapters').value;
     const sortMode = document.getElementById('sortOption').value;
 
@@ -305,21 +319,12 @@ function renderLibrary() {
             if (coverFilter !== 'all') { const hasCover = (f.coverStatus === 'yes'); if (coverFilter === 'yes' && !hasCover) return false; if (coverFilter === 'not' && hasCover) return false; }
             if (fandomFilter !== 'all' && (!f.fandom || f.fandom.trim() !== fandomFilter)) return false;
             
-            if (cwFilter !== 'all') {
-                const hasCW = f.cws && f.cws.includes(cwFilter);
-                if (matchMode === 'include' && !hasCW) return false;
-                if (matchMode === 'exclude' && hasCW) return false;
-            }
-            if (shipFilter !== 'all') {
-                const hasShip = f.ships && f.ships.includes(shipFilter);
-                if (matchMode === 'include' && !hasShip) return false;
-                if (matchMode === 'exclude' && hasShip) return false;
-            }
-            if (tagFilter !== 'all') {
-                const hasTag = f.tags && f.tags.includes(tagFilter);
-                if (matchMode === 'include' && !hasTag) return false;
-                if (matchMode === 'exclude' && hasTag) return false;
-            }
+            // Dedicated Exclude Logic
+            if (cwFilter !== 'all' && (!f.cws || !f.cws.includes(cwFilter))) return false;
+            if (excludeCwFilter !== 'none' && f.cws && f.cws.includes(excludeCwFilter)) return false;
+            
+            if (shipFilter !== 'all' && (!f.ships || !f.ships.includes(shipFilter))) return false;
+            if (tagFilter !== 'all' && (!f.tags || !f.tags.includes(tagFilter))) return false;
             
             const chaps = f.chapters || 0;
             if (chapterFilter === 'short' && chaps >= 10) return false; if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false; if (chapterFilter === 'long' && chaps <= 50) return false;
@@ -524,7 +529,6 @@ function updateDashboard() {
     const bar = document.getElementById('stat-progress-bar'); 
     bar.style.width = `${pct}%`; bar.innerText = `${pct}%`;
 
-    // Month vs Month Comparison
     const now = new Date();
     const thisMonth = now.getMonth();
     const thisYear = now.getFullYear();
@@ -785,24 +789,20 @@ function generateShareCard() {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, 1080, 1080);
     
-    // Background
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, 1080, 1080);
 
-    // Subtle Gradient Glow
     const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
     gradient.addColorStop(0, '#818cf830');
     gradient.addColorStop(1, '#0f172a');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1080, 1080);
 
-    // Title
     ctx.fillStyle = '#f1f5f9';
     ctx.font = 'bold 80px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(`${year} in Reading`, 540, 160);
 
-    // Left Stat
     ctx.font = 'bold 130px sans-serif';
     ctx.fillStyle = '#818cf8';
     ctx.fillText(`${yearFics}`, 540, 380);
@@ -810,7 +810,6 @@ function generateShareCard() {
     ctx.fillStyle = '#94a3b8';
     ctx.fillText(`FICS FINISHED`, 540, 440);
 
-    // Right Stat
     let wordText = yearWords >= 1000000 ? (yearWords/1000000).toFixed(1) + 'M' : yearWords.toLocaleString();
     ctx.font = 'bold 120px sans-serif';
     ctx.fillStyle = '#a78bfa';
@@ -819,7 +818,6 @@ function generateShareCard() {
     ctx.fillStyle = '#94a3b8';
     ctx.fillText(`WORDS READ (that's about ${novels} novels!)`, 540, 660);
 
-    // Fandoms Block
     ctx.font = 'bold 45px sans-serif';
     ctx.fillStyle = '#f1f5f9';
     ctx.textAlign = 'left';
@@ -830,7 +828,6 @@ function generateShareCard() {
         ctx.fillText(`${i+1}. ${fan.length > 25 ? fan.substring(0,22)+'...' : fan}`, 120, 910 + (i*60));
     });
 
-    // Ship Block
     ctx.font = 'bold 45px sans-serif';
     ctx.fillStyle = '#f1f5f9';
     ctx.fillText(`Top Ship`, 580, 840);
@@ -1080,7 +1077,7 @@ function deleteFic() {
     if(confirm("Delete this fic?")) { 
         const idToRemove = document.getElementById('editId').value;
         fics = fics.filter(f => f.id !== idToRemove); 
-        removeFromQueue(idToRemove); // Also clean it from queue
+        removeFromQueue(idToRemove); 
         persistData(); 
         closeModal();
         refreshActiveTab();
@@ -1110,7 +1107,7 @@ function handleFormSubmit(e) {
         tags: document.getElementById('inpTags').value.split(',').map(s=>s.trim()).filter(s=>s),
         cws: document.getElementById('inpCW').value.split(',').map(s=>s.trim()).filter(s=>s),
         readProgress: parseInt(document.getElementById('inpReadProgress').value) || 0,
-        finishedDates: [...tempDates], // Proper Array saving mapping exactly to edits/additions
+        finishedDates: [...tempDates],
         dateFinished: latestDate,
         series: document.getElementById('inpSeries').value.trim(), 
         seriesPart: parseInt(document.getElementById('inpSeriesPart').value) || 0
@@ -1137,7 +1134,6 @@ function handleFileUpload(e) {
             const j = JSON.parse(ev.target.result); 
             const ficsToImport = Array.isArray(j) ? j : (j.fics || []); 
             
-            // Safety confirmation
             if(!confirm(`You currently have ${fics.length} fics. This backup contains ${ficsToImport.length} fics. Importing will permanently replace your library. Continue?`)) {
                 e.target.value = '';
                 return;
