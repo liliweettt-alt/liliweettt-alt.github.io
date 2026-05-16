@@ -101,23 +101,6 @@
             <div id="view-stats-global" class="animate-fade-in">
                 <div class="mb-6"><button type="button" onclick="generateShareCard()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-500/25 text-white font-bold py-3 rounded-xl text-sm transition-all transform active:scale-95"><i class="fa-solid fa-share-nodes mr-2"></i>Year in Review Summary</button></div>
 
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="bg-slate-800 p-3 rounded-2xl border border-slate-700 flex flex-col justify-center min-w-0">
-                        <p class="text-slate-400 text-[9px] uppercase font-bold mb-1 truncate">Fics Finished (This Month)</p>
-                        <div class="flex justify-between items-end">
-                            <p class="text-lg tracking-tighter font-bold text-white leading-none truncate" id="stat-month-fics">0</p>
-                            <p class="text-xs font-bold" id="stat-month-fics-change">0%</p>
-                        </div>
-                    </div>
-                    <div class="bg-slate-800 p-3 rounded-2xl border border-slate-700 flex flex-col justify-center min-w-0">
-                        <p class="text-slate-400 text-[9px] uppercase font-bold mb-1 truncate">Words Read (This Month)</p>
-                        <div class="flex justify-between items-end">
-                            <p class="text-lg tracking-tighter font-bold text-white leading-none truncate" id="stat-month-words">0</p>
-                            <p class="text-xs font-bold" id="stat-month-words-change">0%</p>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-3 gap-3 mb-4">
                     <div class="bg-slate-800 p-3 rounded-2xl border border-slate-700 text-center flex flex-col justify-center min-w-0">
                         <p class="text-slate-400 text-[9px] uppercase font-bold mb-1 truncate">Words</p>
@@ -139,7 +122,7 @@
                 </div>
                 
                 <div class="space-y-6 mb-8">
-                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Fandom Phases</h3><div class="h-48 relative"><canvas id="chartFandomPhases"></canvas></div></div>
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Fandom Phases (12m)</h3><div class="h-48 relative"><canvas id="chartFandomPhases"></canvas></div></div>
                     <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms</h3><div class="h-48 relative"><canvas id="chartFandoms"></canvas></div></div>
                     <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships</h3><div class="h-48 relative"><canvas id="chartShips"></canvas></div></div>
                     <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags</h3><div class="h-48 relative"><canvas id="chartTags"></canvas></div></div>
@@ -165,10 +148,24 @@
             <div id="view-stats-monthly" class="hidden animate-fade-in">
                 <div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold">Monthly Tracker</h1><input type="month" id="monthPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="renderMonthlyStats()"></div>
                 <div id="monthly-content">
+                    
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-[10px] text-slate-500 uppercase font-bold">Words this Month</p><p class="text-xl font-bold text-white mt-1 truncate tracking-tighter" id="month-words">0</p></div>
-                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700"><p class="text-[10px] text-slate-500 uppercase font-bold">Fics Finished</p><p class="text-xl font-bold text-white mt-1 truncate tracking-tighter" id="month-count">0</p></div>
+                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col justify-center min-w-0">
+                            <p class="text-slate-400 text-[10px] uppercase font-bold mb-1 truncate">Words this Month</p>
+                            <div class="flex justify-between items-end">
+                                <p class="text-xl tracking-tighter font-bold text-white leading-none truncate" id="month-words">0</p>
+                                <p class="text-xs font-bold" id="month-words-change">0%</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col justify-center min-w-0">
+                            <p class="text-slate-400 text-[10px] uppercase font-bold mb-1 truncate">Fics Finished</p>
+                            <div class="flex justify-between items-end">
+                                <p class="text-xl tracking-tighter font-bold text-white leading-none truncate" id="month-count">0</p>
+                                <p class="text-xs font-bold" id="month-fics-change">0%</p>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 mb-6"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Daily Activity</h3><div class="h-48 relative"><canvas id="chartDaily"></canvas></div></div>
                     <div class="space-y-6">
                         <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2">Top Fandoms</h3><div id="month-top-fandoms" class="space-y-2 mt-2"></div></div>
