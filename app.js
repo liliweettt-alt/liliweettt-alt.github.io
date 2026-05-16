@@ -152,9 +152,8 @@ function populateFilterDropdowns() {
     fill('filterFandom', Array.from(fandomSet), 'Fandom: All');
     fill('filterShips', Array.from(shipSet), 'Ship: All'); 
     fill('filterTags', Array.from(tagSet), 'Tag: All');
-    fill('filterCW', Array.from(cwSet), 'Include CW: All');
     
-    // Explicit logic for the Exclude CW dropdown (defaults to "none")
+    // Explicit logic for the Exclude CW dropdown
     const excludeSelect = document.getElementById('filterExcludeCW');
     const currentExclude = excludeSelect.value;
     excludeSelect.innerHTML = `<option value="none">Exclude CW: None</option>`;
@@ -227,7 +226,6 @@ function clearFilters() {
     document.getElementById('filterFandom').value = 'all';
     document.getElementById('filterShips').value = 'all';
     document.getElementById('filterTags').value = 'all';
-    document.getElementById('filterCW').value = 'all';
     document.getElementById('filterExcludeCW').value = 'none';
     document.getElementById('filterChapters').value = 'all';
     renderLibrary();
@@ -307,7 +305,6 @@ function renderLibrary() {
     const fandomFilter = document.getElementById('filterFandom').value;
     const shipFilter = document.getElementById('filterShips').value;
     const tagFilter = document.getElementById('filterTags').value;
-    const cwFilter = document.getElementById('filterCW').value;
     const excludeCwFilter = document.getElementById('filterExcludeCW').value;
     const chapterFilter = document.getElementById('filterChapters').value;
     const sortMode = document.getElementById('sortOption').value;
@@ -319,8 +316,6 @@ function renderLibrary() {
             if (coverFilter !== 'all') { const hasCover = (f.coverStatus === 'yes'); if (coverFilter === 'yes' && !hasCover) return false; if (coverFilter === 'not' && hasCover) return false; }
             if (fandomFilter !== 'all' && (!f.fandom || f.fandom.trim() !== fandomFilter)) return false;
             
-            // Dedicated Exclude Logic
-            if (cwFilter !== 'all' && (!f.cws || !f.cws.includes(cwFilter))) return false;
             if (excludeCwFilter !== 'none' && f.cws && f.cws.includes(excludeCwFilter)) return false;
             
             if (shipFilter !== 'all' && (!f.ships || !f.ships.includes(shipFilter))) return false;
