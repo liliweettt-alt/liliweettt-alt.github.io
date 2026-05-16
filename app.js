@@ -67,6 +67,7 @@ function switchTab(tab) {
         el.classList.remove('active', 'text-indigo-400'); 
         el.classList.add('text-slate-500'); 
     });
+    
     const activeBtn = document.getElementById(`btn-${tab}`);
     if(activeBtn) {
         activeBtn.classList.remove('text-slate-500'); 
@@ -112,7 +113,6 @@ function refreshActiveTab() {
     }
     if(activeTab === 'upnext') {
         renderQueue();
-        
     }
 }
 
@@ -548,55 +548,6 @@ function updateDashboard() {
     const bar = document.getElementById('stat-progress-bar'); 
     bar.style.width = `${pct}%`; bar.innerText = `${pct}%`;
 
-    const now = new Date();
-    const thisMonth = now.getMonth();
-    const thisYear = now.getFullYear();
-    let lastMonth = thisMonth - 1;
-    let lastMonthYear = thisYear;
-    if (lastMonth < 0) { lastMonth = 11; lastMonthYear--; }
-
-    let tmFics = 0, tmWords = 0, lmFics = 0, lmWords = 0;
-    fics.forEach(f => {
-        if (f.rereadStatus === 'read' && f.finishedDates) {
-            f.finishedDates.forEach(dateStr => {
-                const d = parseDateLocal(dateStr);
-                if (!d) return;
-                if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
-                    tmFics++;
-                    tmWords += (f.wordcount || 0);
-                } else if (d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear) {
-                    lmFics++;
-                    lmWords += (f.wordcount || 0);
-                }
-            });
-        }
-    });
-
-    document.getElementById('stat-month-fics').innerText = tmFics;
-    document.getElementById('stat-month-words').innerText = tmWords.toLocaleString();
-
-    const calcChange = (cur, prev) => {
-        if (prev === 0) return cur > 0 ? '+100%' : '0%';
-        const p = Math.round(((cur - prev) / prev) * 100);
-        return p >= 0 ? `+${p}%` : `${p}%`;
-    };
-    
-    const applyChangeUI = (id, valStr) => {
-        const el = document.getElementById(id);
-        el.innerText = valStr;
-        if(valStr.startsWith('+')) {
-            el.className = 'text-xs font-bold text-emerald-400';
-            el.innerHTML = `<i class="fa-solid fa-arrow-up text-[9px] mr-0.5"></i>${valStr}`;
-        } else if (valStr === '0%') {
-            el.className = 'text-xs font-bold text-slate-500';
-        } else {
-            el.className = 'text-xs font-bold text-red-400';
-            el.innerHTML = `<i class="fa-solid fa-arrow-down text-[9px] mr-0.5"></i>${valStr.replace('-', '')}`;
-        }
-    };
-    applyChangeUI('stat-month-fics-change', calcChange(tmFics, lmFics));
-    applyChangeUI('stat-month-words-change', calcChange(tmWords, lmWords));
-
     renderPieChart('chartFandoms', readFics, f => f.fandom, 'fandoms');
     renderPieChart('chartShips', readFics, f => f.ships, 'ships');
     renderPieChart('chartTags', readFics, f => f.tags, 'tags'); 
@@ -672,19 +623,36 @@ function renderMonthlyStats() {
     const pickerVal = document.getElementById('monthPicker').value;
     if(!pickerVal) return;
     const [year, month] = pickerVal.split('-').map(Number);
+    
+    let prevMonth = month - 1;
+    let prevYear = year;
+    if (prevMonth < 1) {
+        prevMonth = 12;
+        prevYear--;
+    }
+
     const now = new Date();
     const isCurrentMonth = (year === now.getFullYear() && month === (now.getMonth() + 1));
     
     const monthFics = [];
     let wordsInMonth = 0;
+    let lmFics = 0;
+    let lmWords = 0;
     
     fics.forEach(f => {
         if(f.rereadStatus === 'read' && f.finishedDates) {
             f.finishedDates.forEach(dateStr => {
                 const d = parseDateLocal(dateStr);
-                if(d && d.getFullYear() === year && (d.getMonth() + 1) === month) {
-                    monthFics.push(f);
-                    wordsInMonth += (f.wordcount || 0);
+                if(d) {
+                    const dYear = d.getFullYear();
+                    const dMonth = d.getMonth() + 1;
+                    if(dYear === year && dMonth === month) {
+                        monthFics.push(f);
+                        wordsInMonth += (f.wordcount || 0);
+                    } else if (dYear === prevYear && dMonth === prevMonth) {
+                        lmFics++;
+                        lmWords += (f.wordcount || 0);
+                    }
                 }
             });
         }
@@ -698,6 +666,29 @@ function renderMonthlyStats() {
 
     document.getElementById('month-words').innerText = wordsInMonth.toLocaleString();
     document.getElementById('month-count').innerText = monthFics.length;
+
+    const calcChange = (cur, prev) => {
+        if (prev === 0) return cur > 0 ? '+100%' : '0%';
+        const p = Math.round(((cur - prev) / prev) * 100);
+        return p >= 0 ? `+${p}%` : `${p}%`;
+    };
+    
+    const applyChangeUI = (id, valStr) => {
+        const el = document.getElementById(id);
+        el.innerText = valStr;
+        if(valStr.startsWith('+')) {
+            el.className = 'text-xs font-bold text-emerald-400';
+            el.innerHTML = `<i class="fa-solid fa-arrow-up text-[9px] mr-0.5"></i>${valStr}`;
+        } else if (valStr === '0%') {
+            el.className = 'text-xs font-bold text-slate-500';
+        } else {
+            el.className = 'text-xs font-bold text-red-400';
+            el.innerHTML = `<i class="fa-solid fa-arrow-down text-[9px] mr-0.5"></i>${valStr.replace('-', '')}`;
+        }
+    };
+    
+    applyChangeUI('month-fics-change', calcChange(monthFics.length, lmFics));
+    applyChangeUI('month-words-change', calcChange(wordsInMonth, lmWords));
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
