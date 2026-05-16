@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch(e) { console.error("Data load error", e); fics = []; }
         renderLibrary();
-        updateReport();
     }
     
     if (storedGoal) { 
@@ -68,18 +67,24 @@ function switchTab(tab) {
         el.classList.remove('active', 'text-indigo-400'); 
         el.classList.add('text-slate-500'); 
     });
-    
     const activeBtn = document.getElementById(`btn-${tab}`);
-    activeBtn.classList.remove('text-slate-500'); 
-    activeBtn.classList.add('active', 'text-indigo-400');
+    if(activeBtn) {
+        activeBtn.classList.remove('text-slate-500'); 
+        activeBtn.classList.add('active', 'text-indigo-400');
+    }
     
     if(tab === 'dashboard') {
-        switchStatsView(document.getElementById('btn-stats-global').classList.contains('tab-btn-active') ? 'global' : 'monthly'); 
+        let activeView = 'global';
+        if(document.getElementById('btn-stats-monthly').classList.contains('tab-btn-active')) activeView = 'monthly';
+        if(document.getElementById('btn-stats-history').classList.contains('tab-btn-active')) activeView = 'history';
+        switchStatsView(activeView); 
     }
-    if(tab === 'report') updateReport();
-    if(tab === 'queue') renderQueue();
-    if(tab === 'discovery' && document.getElementById('discoveryList').innerHTML === '') {
-        renderDiscovery();
+    
+    if(tab === 'upnext') {
+        renderQueue();
+        if(document.getElementById('discoveryList').innerHTML === '') {
+            renderDiscovery();
+        }
     }
     
     window.scrollTo(0,0);
@@ -91,18 +96,30 @@ function persistData() {
 
 function refreshActiveTab() {
     const activeBtn = document.querySelector('.nav-btn.active');
-    if(!activeBtn) return;
+    
+    if(!activeBtn) {
+        if(!document.getElementById('tab-settings').classList.contains('hidden')) return;
+        return;
+    }
     
     const activeTab = activeBtn.id.replace('btn-', '');
     if(activeTab === 'library') renderLibrary();
-    if(activeTab === 'dashboard') switchStatsView(document.getElementById('btn-stats-global').classList.contains('tab-btn-active') ? 'global' : 'monthly');
-    if(activeTab === 'report') updateReport();
-    if(activeTab === 'queue') renderQueue();
+    if(activeTab === 'dashboard') {
+        let activeView = 'global';
+        if(document.getElementById('btn-stats-monthly').classList.contains('tab-btn-active')) activeView = 'monthly';
+        if(document.getElementById('btn-stats-history').classList.contains('tab-btn-active')) activeView = 'history';
+        switchStatsView(activeView); 
+    }
+    if(activeTab === 'upnext') {
+        renderQueue();
+        
+    }
 }
 
 function saveWPM() { 
     localStorage.setItem('ficLibWPM', document.getElementById('inpWPM').value); 
-    if (document.querySelector('.nav-btn.active').id === 'btn-library') {
+    const activeBtn = document.querySelector('.nav-btn.active');
+    if (activeBtn && activeBtn.id === 'btn-library') {
         renderLibrary(); 
     }
 }
@@ -110,18 +127,26 @@ function saveWPM() {
 function switchStatsView(view) {
     document.getElementById('view-stats-global').classList.toggle('hidden', view !== 'global');
     document.getElementById('view-stats-monthly').classList.toggle('hidden', view !== 'monthly');
+    document.getElementById('view-stats-history').classList.toggle('hidden', view !== 'history');
     
     const btnGlobal = document.getElementById('btn-stats-global');
     const btnMonthly = document.getElementById('btn-stats-monthly');
+    const btnHistory = document.getElementById('btn-stats-history');
+    
+    [btnGlobal, btnMonthly, btnHistory].forEach(btn => {
+        btn.classList.remove('tab-btn-active');
+        btn.classList.add('tab-btn-inactive');
+    });
     
     if(view === 'global') {
         btnGlobal.classList.add('tab-btn-active'); btnGlobal.classList.remove('tab-btn-inactive');
-        btnMonthly.classList.remove('tab-btn-active'); btnMonthly.classList.add('tab-btn-inactive');
         updateDashboard();
-    } else {
+    } else if (view === 'monthly') {
         btnMonthly.classList.add('tab-btn-active'); btnMonthly.classList.remove('tab-btn-inactive');
-        btnGlobal.classList.remove('tab-btn-active'); btnGlobal.classList.add('tab-btn-inactive');
         renderMonthlyStats();
+    } else {
+        btnHistory.classList.add('tab-btn-active'); btnHistory.classList.remove('tab-btn-inactive');
+        updateReport();
     }
 }
 
@@ -153,7 +178,6 @@ function populateFilterDropdowns() {
     fill('filterShips', Array.from(shipSet), 'Ship: All'); 
     fill('filterTags', Array.from(tagSet), 'Tag: All');
     
-    // Explicit logic for the Exclude CW dropdown
     const excludeSelect = document.getElementById('filterExcludeCW');
     const currentExclude = excludeSelect.value;
     excludeSelect.innerHTML = `<option value="none">Exclude CW: None</option>`;
@@ -242,10 +266,10 @@ function addToQueue(id) {
 function removeFromQueue(id) {
     queueIds = queueIds.filter(qid => qid !== id);
     localStorage.setItem('ficLibQueue', JSON.stringify(queueIds));
-    if (document.getElementById('btn-queue').classList.contains('active')) {
-        renderQueue();
-    } else if (document.getElementById('btn-library').classList.contains('active')) {
-        renderLibrary();
+    const activeBtn = document.querySelector('.nav-btn.active');
+    if (activeBtn) {
+        if (activeBtn.id === 'btn-upnext') renderQueue();
+        if (activeBtn.id === 'btn-library') renderLibrary();
     }
 }
 
