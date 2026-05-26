@@ -13,7 +13,30 @@ function escapeHTML(str) {
     });
 }
 
+function getChartColor(colorVar) {
+    const root = getComputedStyle(document.documentElement);
+    const val = root.getPropertyValue(`--c-${colorVar}`).trim();
+    if(!val) return '#ffffff';
+    return `rgb(${val.split(' ').join(', ')})`;
+}
+
+function getThemeColors() {
+    return [
+        getChartColor('indigo-400'),
+        getChartColor('purple-500'),
+        getChartColor('purple-400'),
+        getChartColor('indigo-500'),
+        getChartColor('purple-600'),
+        getChartColor('slate-500')
+    ];
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('ficLibTheme') || 'midnight';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const themePicker = document.getElementById('themePicker');
+    if(themePicker) themePicker.value = savedTheme;
+
     const stored = localStorage.getItem('ficLibData');
     const storedGoal = localStorage.getItem('ficLibGoal');
     const storedWPM = localStorage.getItem('ficLibWPM');
@@ -49,6 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     switchStatsView('global');
 });
+
+function changeTheme() {
+    const theme = document.getElementById('themePicker').value;
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('ficLibTheme', theme);
+    
+    refreshActiveTab(); 
+}
 
 function parseDateLocal(input) { 
     if(!input) return null; 
@@ -586,7 +617,7 @@ function renderFandomPhases() {
 
     const topFandoms = Object.entries(recentFandomCount).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]);
     const datasets = [];
-    const colors = ['#818cf8', '#a78bfa', '#c084fc', '#6366f1', '#e879f9', '#334155'];
+    const colors = getThemeColors();
     
     topFandoms.forEach((fan, i) => {
         const data = buckets.map(b => b.fandoms[fan] || 0);
@@ -605,16 +636,31 @@ function renderFandomPhases() {
     const ctx = document.getElementById('chartFandomPhases').getContext('2d');
     if(chartInstances.phases) chartInstances.phases.destroy();
 
+    const textMuted = getChartColor('slate-500');
+    const borderMuted = getChartColor('slate-700');
+    const legendText = getChartColor('slate-300');
+    const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-body').trim().replace(/['"]/g, '') || 'sans-serif';
+
     chartInstances.phases = new Chart(ctx, {
         type: 'bar',
         data: { labels: labels, datasets: datasets },
         options: {
             responsive: true, maintainAspectRatio: false,
             scales: {
-                x: { stacked: true, grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } },
-                y: { stacked: true, border: { display: false }, grid: { color: '#334155' }, ticks: { color: '#64748b', font: { size: 9 }, precision: 0 } }
+                x: { stacked: true, grid: { display: false }, ticks: { color: textMuted, font: { size: 9, family: fontFamily } } },
+                y: { stacked: true, border: { display: false }, grid: { color: borderMuted }, ticks: { color: textMuted, font: { size: 9, family: fontFamily }, precision: 0 } }
             },
-            plugins: { legend: { display: false } }
+            plugins: { 
+                legend: { 
+                    display: true, 
+                    position: 'bottom',
+                    labels: {
+                        color: legendText,
+                        font: { size: 10, family: fontFamily },
+                        boxWidth: 12
+                    }
+                } 
+            }
         }
     });
 }
@@ -707,10 +753,15 @@ function renderMonthlyStats() {
     const ctx = document.getElementById('chartDaily').getContext('2d');
     if(chartInstances.daily) chartInstances.daily.destroy();
     
+    const textMuted = getChartColor('slate-500');
+    const borderMuted = getChartColor('slate-700');
+    const barColor = getChartColor('indigo-400');
+    const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-body').trim().replace(/['"]/g, '') || 'sans-serif';
+
     chartInstances.daily = new Chart(ctx, { 
         type: 'bar', 
-        data: { labels: labels, datasets: [{ label: 'Words', data: data, backgroundColor: '#818cf8', borderRadius: 3 }] }, 
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } }, y: { border: { display: false }, grid: { color: '#334155' }, ticks: { color: '#64748b', font: { size: 9 } } } } } 
+        data: { labels: labels, datasets: [{ label: 'Words', data: data, backgroundColor: barColor, borderRadius: 3 }] }, 
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: textMuted, font: { size: 9, family: fontFamily } } }, y: { border: { display: false }, grid: { color: borderMuted }, ticks: { color: textMuted, font: { size: 9, family: fontFamily } } } } } 
     });
 
     const renderList = (id, keyFn) => {
@@ -739,10 +790,13 @@ function renderPieChart(canvasId, list, keyFn, instanceName) {
     });
     
     const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const legendText = getChartColor('slate-300');
+    const fontFamily = getComputedStyle(document.documentElement).getPropertyValue('--font-body').trim().replace(/['"]/g, '') || 'sans-serif';
+    
     if (sorted.length === 0) {
         chartInstances[instanceName] = new Chart(ctx, { 
             type: 'doughnut', 
-            data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: ['#334155'], borderColor: '#1e293b', borderWidth: 2 }] }, 
+            data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: [getChartColor('slate-700')], borderColor: getChartColor('slate-800'), borderWidth: 2 }] }, 
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } } 
         });
         return;
@@ -750,12 +804,13 @@ function renderPieChart(canvasId, list, keyFn, instanceName) {
 
     const labels = sorted.map(x => escapeHTML(x[0])); 
     const data = sorted.map(x => x[1]);
-    const colors = ['#818cf8', '#a78bfa', '#c084fc', '#6366f1', '#94a3b8'];
+    const colors = getThemeColors();
+    const borderColor = getChartColor('slate-800');
     
     chartInstances[instanceName] = new Chart(ctx, { 
         type: 'doughnut', 
-        data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#1e293b', borderWidth: 2 }] }, 
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10, family: 'Inter' }, boxWidth: 10 } } } } 
+        data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: borderColor, borderWidth: 2 }] }, 
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: legendText, font: { size: 10, family: fontFamily }, boxWidth: 10 } } } } 
     });
 }
 
@@ -765,6 +820,7 @@ function generateShareCard() {
     let yearWords = 0;
     let fandomCount = {};
     let shipCount = {};
+    let tagCount = {};
 
     fics.forEach(f => {
         if (f.rereadStatus === 'read' && f.finishedDates) {
@@ -787,11 +843,16 @@ function generateShareCard() {
                     const ship = s.trim();
                     shipCount[ship] = (shipCount[ship] || 0) + readsThisYear;
                 });
+                (f.tags || []).forEach(t => {
+                    const tag = t.trim();
+                    tagCount[tag] = (tagCount[tag] || 0) + readsThisYear;
+                });
             }
         }
     });
 
     const topFandoms = Object.entries(fandomCount).sort((a,b)=>b[1]-a[1]).slice(0, 3).map(x=>x[0]);
+    const topTags = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]).slice(0, 3).map(x=>x[0]);
     const topShip = Object.entries(shipCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'None';
     const novels = Math.floor(yearWords / 90000);
 
@@ -799,51 +860,71 @@ function generateShareCard() {
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, 1080, 1080);
     
-    ctx.fillStyle = '#0f172a';
+    const root = getComputedStyle(document.documentElement);
+    const getRgb = (v) => `rgb(${root.getPropertyValue(v).trim().split(' ').join(',')})`;
+    const getRgba = (v, a) => `rgba(${root.getPropertyValue(v).trim().split(' ').join(',')}, ${a})`;
+    
+    const fontHeading = root.getPropertyValue('--font-heading').trim().replace(/['"]/g, '') || 'sans-serif';
+    const fontBody = root.getPropertyValue('--font-body').trim().replace(/['"]/g, '') || 'sans-serif';
+
+    ctx.fillStyle = getRgb('--c-slate-900');
     ctx.fillRect(0, 0, 1080, 1080);
 
     const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
-    gradient.addColorStop(0, '#818cf830');
-    gradient.addColorStop(1, '#0f172a');
+    gradient.addColorStop(0, getRgba('--c-indigo-400', 0.2));
+    gradient.addColorStop(1, getRgb('--c-slate-900'));
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1080, 1080);
 
-    ctx.fillStyle = '#f1f5f9';
-    ctx.font = 'bold 80px sans-serif';
+    ctx.fillStyle = getRgb('--c-slate-100') || '#f1f5f9';
+    ctx.font = `bold 80px ${fontHeading}`;
     ctx.textAlign = 'center';
-    ctx.fillText(`${year} in Reading`, 540, 160);
+    ctx.fillText(`${year} in Reading`, 540, 120);
 
-    ctx.font = 'bold 130px sans-serif';
-    ctx.fillStyle = '#818cf8';
-    ctx.fillText(`${yearFics}`, 540, 380);
-    ctx.font = 'bold 40px sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText(`FICS FINISHED`, 540, 440);
-
+    ctx.font = `bold 130px ${fontHeading}`;
+    ctx.fillStyle = getRgb('--c-indigo-400');
+    ctx.fillText(`${yearFics}`, 540, 300);
+    ctx.font = `bold 40px ${fontBody}`;
+    ctx.fillStyle = getRgb('--c-slate-400');
+    ctx.fillText(`FICS FINISHED`, 540, 360);
+    
     let wordText = yearWords >= 1000000 ? (yearWords/1000000).toFixed(1) + 'M' : yearWords.toLocaleString();
-    ctx.font = 'bold 120px sans-serif';
-    ctx.fillStyle = '#a78bfa';
-    ctx.fillText(`${wordText}`, 540, 600);
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText(`WORDS READ (that's about ${novels} novels!)`, 540, 660);
+    ctx.font = `bold 120px ${fontHeading}`;
+    ctx.fillStyle = getRgb('--c-purple-400');
+    ctx.fillText(`${wordText}`, 540, 520);
+    ctx.font = `bold 36px ${fontBody}`;
+    ctx.fillStyle = getRgb('--c-slate-400');
+    ctx.fillText(`WORDS READ (that's about ${novels} novels!)`, 540, 580);
 
-    ctx.font = 'bold 45px sans-serif';
-    ctx.fillStyle = '#f1f5f9';
+    ctx.font = `bold 45px ${fontHeading}`;
+    ctx.fillStyle = getRgb('--c-slate-100') || '#f1f5f9';
+    
     ctx.textAlign = 'left';
-    ctx.fillText(`Top Fandoms`, 120, 840);
-    ctx.font = '40px sans-serif';
-    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`Top Fandoms`, 100, 720);
+    
+    ctx.textAlign = 'right';
+    ctx.fillText(`Top Tags`, 980, 720);
+
+    ctx.font = `40px ${fontBody}`;
+    ctx.fillStyle = getRgb('--c-slate-300');
+    
+    ctx.textAlign = 'left';
     topFandoms.forEach((fan, i) => {
-        ctx.fillText(`${i+1}. ${fan.length > 25 ? fan.substring(0,22)+'...' : fan}`, 120, 910 + (i*60));
+        ctx.fillText(`${i+1}. ${fan.length > 20 ? fan.substring(0,18)+'...' : fan}`, 100, 790 + (i*60));
     });
 
-    ctx.font = 'bold 45px sans-serif';
-    ctx.fillStyle = '#f1f5f9';
-    ctx.fillText(`Top Ship`, 580, 840);
-    ctx.font = '40px sans-serif';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText(`${topShip.length > 25 ? topShip.substring(0,22)+'...' : topShip}`, 580, 910);
+    ctx.textAlign = 'right';
+    topTags.forEach((tag, i) => {
+        ctx.fillText(`${tag.length > 22 ? tag.substring(0,20)+'...' : tag} .${i+1}`, 980, 790 + (i*60));
+    });
+    ctx.font = `bold 45px ${fontHeading}`;
+    ctx.fillStyle = getRgb('--c-slate-100') || '#f1f5f9';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Top Ship`, 540, 950);
+    
+    ctx.font = `40px ${fontBody}`;
+    ctx.fillStyle = getRgb('--c-slate-300');
+    ctx.fillText(`${topShip.length > 35 ? topShip.substring(0,32)+'...' : topShip}`, 540, 1020);
 
     document.getElementById('shareModal').classList.remove('hidden');
 }
@@ -1035,14 +1116,12 @@ function openEditModal(id) {
     
     document.getElementById('editId').value = f.id; 
     document.getElementById('modalTitle').innerText = 'Edit Fic';
-    
     document.getElementById('inpTitle').value = f.title || '';
     document.getElementById('inpAuthor').value = f.author || '';
     document.getElementById('inpFandom').value = f.fandom || '';
     document.getElementById('inpStatus').value = f.status || 'wip';
     document.getElementById('inpSummary').value = f.summary || '';
-    document.getElementById('inpNotes').value = f.notes || '';
-    
+    document.getElementById('inpNotes').value = f.notes || '';   
     document.getElementById('inpLink').value = f.originalLink || '';
     document.getElementById('inpWords').value = f.wordcount || '';
     document.getElementById('inpChapters').value = f.chapters || '';
@@ -1053,7 +1132,6 @@ function openEditModal(id) {
     document.getElementById('inpShips').value = (f.ships || []).join(', '); 
     document.getElementById('inpTags').value = (f.tags || []).join(', ');
     document.getElementById('inpCW').value = (f.cws || []).join(', ');
-    
     document.getElementById('inpReadProgress').value = f.readProgress || '';
 
     tempDates = f.finishedDates ? [...f.finishedDates] : [];
