@@ -15,7 +15,8 @@ function escapeHTML(str) {
 
 function getChartColor(colorVar) {
     const root = getComputedStyle(document.documentElement);
-    const val = root.getPropertyValue(`--c-${colorVar}`).trim();
+    // FIXED: Changed from --c- to --color- to match styles.css
+    const val = root.getPropertyValue(`--color-${colorVar}`).trim();
     if(!val) return '#ffffff';
     return `rgb(${val.split(' ').join(', ')})`;
 }
@@ -32,9 +33,12 @@ function getThemeColors() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('ficLibTheme') || 'midnight';
+    // FIXED: Default theme matches HTML "tech"
+    const savedTheme = localStorage.getItem('ficLibTheme') || 'tech';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    const themePicker = document.getElementById('themePicker');
+    
+    // FIXED: Matched ID with HTML themeSelector
+    const themePicker = document.getElementById('themeSelector');
     if(themePicker) themePicker.value = savedTheme;
 
     const stored = localStorage.getItem('ficLibData');
@@ -74,7 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function changeTheme() {
-    const theme = document.getElementById('themePicker').value;
+    // FIXED: Matched ID with HTML themeSelector
+    const theme = document.getElementById('themeSelector').value;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('ficLibTheme', theme);
     
@@ -867,37 +872,38 @@ function generateShareCard() {
     const fontHeading = root.getPropertyValue('--font-heading').trim().replace(/['"]/g, '') || 'sans-serif';
     const fontBody = root.getPropertyValue('--font-body').trim().replace(/['"]/g, '') || 'sans-serif';
 
-    ctx.fillStyle = getRgb('--c-slate-900');
+    // FIXED: Changed all colors from --c- to --color-
+    ctx.fillStyle = getRgb('--color-slate-900');
     ctx.fillRect(0, 0, 1080, 1080);
 
     const gradient = ctx.createLinearGradient(0, 0, 1080, 1080);
-    gradient.addColorStop(0, getRgba('--c-indigo-400', 0.2));
-    gradient.addColorStop(1, getRgb('--c-slate-900'));
+    gradient.addColorStop(0, getRgba('--color-indigo-400', 0.2));
+    gradient.addColorStop(1, getRgb('--color-slate-900'));
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 1080, 1080);
 
-    ctx.fillStyle = getRgb('--c-slate-100') || '#f1f5f9';
+    ctx.fillStyle = getRgb('--color-slate-100') || '#f1f5f9';
     ctx.font = `bold 80px ${fontHeading}`;
     ctx.textAlign = 'center';
     ctx.fillText(`${year} in Reading`, 540, 120);
 
     ctx.font = `bold 130px ${fontHeading}`;
-    ctx.fillStyle = getRgb('--c-indigo-400');
+    ctx.fillStyle = getRgb('--color-indigo-400');
     ctx.fillText(`${yearFics}`, 540, 300);
     ctx.font = `bold 40px ${fontBody}`;
-    ctx.fillStyle = getRgb('--c-slate-400');
+    ctx.fillStyle = getRgb('--color-slate-400');
     ctx.fillText(`FICS FINISHED`, 540, 360);
     
     let wordText = yearWords >= 1000000 ? (yearWords/1000000).toFixed(1) + 'M' : yearWords.toLocaleString();
     ctx.font = `bold 120px ${fontHeading}`;
-    ctx.fillStyle = getRgb('--c-purple-400');
+    ctx.fillStyle = getRgb('--color-purple-400');
     ctx.fillText(`${wordText}`, 540, 520);
     ctx.font = `bold 36px ${fontBody}`;
-    ctx.fillStyle = getRgb('--c-slate-400');
+    ctx.fillStyle = getRgb('--color-slate-400');
     ctx.fillText(`WORDS READ (that's about ${novels} novels!)`, 540, 580);
 
     ctx.font = `bold 45px ${fontHeading}`;
-    ctx.fillStyle = getRgb('--c-slate-100') || '#f1f5f9';
+    ctx.fillStyle = getRgb('--color-slate-100') || '#f1f5f9';
     
     ctx.textAlign = 'left';
     ctx.fillText(`Top Fandoms`, 100, 720);
@@ -906,7 +912,7 @@ function generateShareCard() {
     ctx.fillText(`Top Tags`, 980, 720);
 
     ctx.font = `40px ${fontBody}`;
-    ctx.fillStyle = getRgb('--c-slate-300');
+    ctx.fillStyle = getRgb('--color-slate-300');
     
     ctx.textAlign = 'left';
     topFandoms.forEach((fan, i) => {
@@ -918,12 +924,12 @@ function generateShareCard() {
         ctx.fillText(`${tag.length > 22 ? tag.substring(0,20)+'...' : tag} .${i+1}`, 980, 790 + (i*60));
     });
     ctx.font = `bold 45px ${fontHeading}`;
-    ctx.fillStyle = getRgb('--c-slate-100') || '#f1f5f9';
+    ctx.fillStyle = getRgb('--color-slate-100') || '#f1f5f9';
     ctx.textAlign = 'center';
     ctx.fillText(`Top Ship`, 540, 950);
     
     ctx.font = `40px ${fontBody}`;
-    ctx.fillStyle = getRgb('--c-slate-300');
+    ctx.fillStyle = getRgb('--color-slate-300');
     ctx.fillText(`${topShip.length > 35 ? topShip.substring(0,32)+'...' : topShip}`, 540, 1020);
 
     document.getElementById('shareModal').classList.remove('hidden');
