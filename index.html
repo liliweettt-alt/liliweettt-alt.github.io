@@ -10,11 +10,56 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
     
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Inter:wght@300;400;600&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Playfair+Display:ital,wght@0,500;0,700;1,500;1,700&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        const savedTheme = localStorage.getItem('ficLibTheme') || 'tech';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            100: 'rgb(var(--color-slate-100) / <alpha-value>)',
+                            300: 'rgb(var(--color-slate-300) / <alpha-value>)',
+                            400: 'rgb(var(--color-slate-400) / <alpha-value>)',
+                            500: 'rgb(var(--color-slate-500) / <alpha-value>)',
+                            600: 'rgb(var(--color-slate-600) / <alpha-value>)',
+                            700: 'rgb(var(--color-slate-700) / <alpha-value>)',
+                            800: 'rgb(var(--color-slate-800) / <alpha-value>)',
+                            900: 'rgb(var(--color-slate-900) / <alpha-value>)',
+                            950: 'rgb(var(--color-slate-950) / <alpha-value>)',
+                        },
+                        indigo: {
+                            200: 'rgb(var(--color-indigo-200) / <alpha-value>)',
+                            300: 'rgb(var(--color-indigo-300) / <alpha-value>)',
+                            400: 'rgb(var(--color-indigo-400) / <alpha-value>)',
+                            500: 'rgb(var(--color-indigo-500) / <alpha-value>)',
+                            600: 'rgb(var(--color-indigo-600) / <alpha-value>)',
+                            900: 'rgb(var(--color-indigo-900) / <alpha-value>)',
+                        },
+                        purple: {
+                            400: 'rgb(var(--color-purple-400) / <alpha-value>)',
+                            500: 'rgb(var(--color-purple-500) / <alpha-value>)',
+                            600: 'rgb(var(--color-purple-600) / <alpha-value>)',
+                            900: 'rgb(var(--color-purple-900) / <alpha-value>)',
+                        },
+                        white: 'rgb(var(--color-white) / <alpha-value>)'
+                    },
+                    fontFamily: {
+                        sans: 'var(--font-body)',
+                        heading: 'var(--font-heading)'
+                    }
+                }
+            }
+        }
+    </script>
+
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="antialiased selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+<body class="font-sans antialiased selection:bg-indigo-500 selection:text-white overflow-x-hidden">
 
     <nav class="fixed bottom-0 inset-x-0 glass-nav flex justify-around px-2 py-3 z-[90] safe-area-pb shadow-[0_-5px_15px_rgba(0,0,0,0.3)]" style="transform: translateZ(0); -webkit-transform: translateZ(0);">
         <button onclick="switchTab('library')" class="nav-btn text-center transition-colors active w-1/3" id="btn-library">
@@ -34,7 +79,7 @@
     <main class="pb-32 pt-8 px-5 max-w-md mx-auto min-h-screen">
         <div id="tab-library" class="tab-content">
             <div class="flex justify-between items-center mb-6">
-                <div><h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">FicLib</h1><p class="text-slate-400 text-xs mt-1">Your reading universe</p></div>
+                <div><h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 font-heading">FicLib</h1><p class="text-slate-400 text-xs mt-1">Your reading universe</p></div>
                 <div class="flex gap-3">
                     <button onclick="switchTab('settings')" class="w-10 h-10 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center justify-center transition-all shadow-lg border border-slate-700"><i class="fa-solid fa-gear text-lg"></i></button>
                     <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white w-10 h-10 rounded-full shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all transform hover:scale-105"><i class="fa-solid fa-plus text-lg"></i></button>
@@ -75,7 +120,7 @@
         <div id="tab-upnext" class="tab-content hidden animate-fade-in">
             <div class="mb-10">
                 <div class="flex justify-between items-end mb-4">
-                    <div><h1 class="text-2xl font-bold text-white">Your Queue</h1><p class="text-slate-400 text-xs">Manual priority list</p></div>
+                    <div><h1 class="text-2xl font-bold font-heading text-white">Your Queue</h1><p class="text-slate-400 text-xs">Manual priority list</p></div>
                 </div>
                 <div id="queueList" class="space-y-2"></div>
             </div>
@@ -84,7 +129,7 @@
 
             <div>
                 <div class="flex justify-between items-end mb-6">
-                    <div><h2 class="text-xl font-bold text-white">Unread Gems</h2><p class="text-slate-400 text-xs">Random suggestions</p></div>
+                    <div><h2 class="text-xl font-bold font-heading text-white">Unread Gems</h2><p class="text-slate-400 text-xs">Random suggestions</p></div>
                     <button onclick="renderDiscovery()" class="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 px-3 py-1.5 rounded-lg flex items-center gap-2"><i class="fa-solid fa-shuffle"></i> Spin</button>
                 </div>
                 <div id="discoveryList" class="space-y-6"></div>
@@ -110,9 +155,9 @@
                         <p class="text-slate-400 text-[9px] uppercase font-bold mb-1 truncate">Unique Fics</p>
                         <p class="text-sm sm:text-lg tracking-tighter font-bold text-white leading-none truncate" id="stat-total">0</p>
                     </div>
-                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-blue-500/30 text-center flex flex-col justify-center min-w-0">
-                        <p class="text-blue-400 text-[9px] uppercase font-bold mb-1 truncate">Active</p>
-                        <p class="text-sm sm:text-lg tracking-tighter font-bold text-blue-300 leading-none truncate" id="stat-active">0</p>
+                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-indigo-500/30 text-center flex flex-col justify-center min-w-0">
+                        <p class="text-indigo-400 text-[9px] uppercase font-bold mb-1 truncate">Active</p>
+                        <p class="text-sm sm:text-lg tracking-tighter font-bold text-indigo-300 leading-none truncate" id="stat-active">0</p>
                     </div>
                 </div>
 
@@ -122,7 +167,7 @@
                 </div>
                 
                 <div class="space-y-6 mb-8">
-                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Fandom Phases (12m)</h3><div class="h-48 relative"><canvas id="chartFandomPhases"></canvas></div></div>
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Fandom Phases</h3><div class="h-48 relative"><canvas id="chartFandomPhases"></canvas></div></div>
                     <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Fandoms</h3><div class="h-48 relative"><canvas id="chartFandoms"></canvas></div></div>
                     <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Ships</h3><div class="h-48 relative"><canvas id="chartShips"></canvas></div></div>
                     <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><h3 class="text-sm font-bold text-slate-300 mb-3 uppercase tracking-wide border-b border-slate-700 pb-2 text-center">Top Tags</h3><div class="h-48 relative"><canvas id="chartTags"></canvas></div></div>
@@ -146,7 +191,7 @@
             </div>
 
             <div id="view-stats-monthly" class="hidden animate-fade-in">
-                <div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold">Monthly Tracker</h1><input type="month" id="monthPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="renderMonthlyStats()"></div>
+                <div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold font-heading text-white">Monthly Tracker</h1><input type="month" id="monthPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="renderMonthlyStats()"></div>
                 <div id="monthly-content">
                     
                     <div class="grid grid-cols-2 gap-4 mb-6">
@@ -176,7 +221,7 @@
             </div>
 
             <div id="view-stats-history" class="hidden animate-fade-in">
-                <div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold">Reading History</h1><select id="historyYearPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="updateReport()"></select></div>
+                <div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold font-heading text-white">Reading History</h1><select id="historyYearPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="updateReport()"></select></div>
                 <div id="history-stats-header" class="bg-slate-800/50 border border-slate-700/50 p-4 rounded-xl flex justify-around items-center mb-6 hidden">
                     <div class="text-center min-w-0"><p class="text-xs text-slate-500 uppercase truncate">Year Total</p><p class="text-xl tracking-tighter font-bold text-white truncate" id="hist-year-words">0</p></div><div class="h-8 w-px bg-slate-700"></div><div class="text-center min-w-0"><p class="text-xs text-slate-500 uppercase truncate">Fics Read</p><p class="text-xl tracking-tighter font-bold text-white truncate" id="hist-year-count">0</p></div>
                 </div>
@@ -187,9 +232,21 @@
         <div id="tab-settings" class="tab-content hidden animate-fade-in">
             <div class="flex items-center gap-4 mb-6">
                 <button onclick="switchTab('library')" class="w-10 h-10 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center justify-center transition-colors border border-slate-700"><i class="fa-solid fa-arrow-left"></i></button>
-                <h1 class="text-2xl font-bold">Data Settings</h1>
+                <h1 class="text-2xl font-bold font-heading text-white">App Settings</h1>
             </div>
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-6">
+                
+                <div>
+                    <h3 class="font-bold mb-3 text-sm text-indigo-300">App Theme</h3>
+                    <select id="themeSelector" onchange="changeTheme()" class="input-field custom-select bg-slate-700 text-sm mb-1">
+                        <option value="tech">Midnight Violet (Default)</option>
+                        <option value="archive">Scholarly Archive</option>
+                        <option value="blood">Blood & Shadows</option>
+                    </select>
+                    <p class="text-[10px] text-slate-500 mt-1">Changes background colors and typography.</p>
+                </div>
+                <hr class="border-slate-700">
+
                 <div><h3 class="font-bold mb-3 text-sm text-indigo-300">Reading Preferences</h3><div class="flex items-center justify-between"><label class="text-xs text-slate-400">Reading Speed (WPM)</label><input type="number" id="inpWPM" value="250" onchange="saveWPM()" class="input-field w-20 text-center py-1 bg-slate-700 text-xs"></div><p class="text-[10px] text-slate-500 mt-1">Used to calculate "Time to Read" on fics.</p></div><hr class="border-slate-700">
                 <div><h3 class="font-bold mb-3 text-sm text-indigo-300">Import Library</h3><input type="file" id="fileInput" accept=".json" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"/></div>
                 <div><h3 class="font-bold mb-3 text-sm text-indigo-300">Export Backup</h3><button type="button" onclick="exportData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"><i class="fa-solid fa-download"></i> Download JSON</button></div>
