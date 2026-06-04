@@ -15,7 +15,6 @@ function escapeHTML(str) {
 
 function getChartColor(colorVar) {
     const root = getComputedStyle(document.documentElement);
-    // FIXED: Changed from --c- to --color- to match styles.css
     const val = root.getPropertyValue(`--color-${colorVar}`).trim();
     if(!val) return '#ffffff';
     return `rgb(${val.split(' ').join(', ')})`;
@@ -33,11 +32,9 @@ function getThemeColors() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // FIXED: Default theme matches HTML "tech"
     const savedTheme = localStorage.getItem('ficLibTheme') || 'tech';
     document.documentElement.setAttribute('data-theme', savedTheme);
     
-    // FIXED: Matched ID with HTML themeSelector
     const themePicker = document.getElementById('themeSelector');
     if(themePicker) themePicker.value = savedTheme;
 
@@ -78,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function changeTheme() {
-    // FIXED: Matched ID with HTML themeSelector
     const theme = document.getElementById('themeSelector').value;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('ficLibTheme', theme);
@@ -424,6 +420,15 @@ function renderLibrary() {
             };
             const getWords = (item) => item.type === 'series' ? item.totalWords : (item.data.wordcount||0);
             const getTitle = (item) => item.type === 'series' ? item.title : item.data.title;
+            const getStatus = (item) => {
+                const s = item.type === 'series' 
+                    ? (item.items.some(f => f.rereadStatus === 'reading') ? 'reading' : item.items[0].rereadStatus || 'unread')
+                    : (item.data.rereadStatus || 'unread');
+                return { reading: 1, unread: 2, onhold: 3, read: 4 }[s] ?? 2;
+            };
+            
+            const sw = getStatus(a) - getStatus(b);
+            if (sw !== 0) return sw;
             if (sortMode === 'az') return getTitle(a).localeCompare(getTitle(b)); 
             if (sortMode === 'words') return getWords(b) - getWords(a); 
             return getTs(b) - getTs(a); 
