@@ -231,10 +231,12 @@ function populateFilterDropdowns() {
 function populateHelperDropdowns() {
     const shipSet = new Set();
     const tagSet = new Set();
+    const cwSet = new Set();
     
     fics.forEach(f => { 
         (f.ships || []).forEach(s => shipSet.add(s.trim())); 
         (f.tags || []).forEach(t => tagSet.add(t.trim())); 
+        (f.cws || []).forEach(c => cwSet.add(c.trim()));
     });
     
     const fillSelect = (id, items) => {
@@ -254,6 +256,7 @@ function populateHelperDropdowns() {
     
     fillSelect('selShipsHelper', Array.from(shipSet));
     fillSelect('selTagsHelper', Array.from(tagSet));
+    fillSelect('selCWHelper', Array.from(cwSet));
 }
 
 function pickSuggestion(targetInputId, selectDropdownId) {
@@ -485,6 +488,8 @@ function renderFicCard(f, container) {
         ? `<button type="button" onclick="event.stopPropagation(); removeFromQueue('${f.id}')" class="text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 p-1.5 rounded-lg ml-1" title="In Queue"><i class="fa-solid fa-bookmark text-xs"></i></button>`
         : `<button type="button" onclick="event.stopPropagation(); addToQueue('${f.id}')" class="text-slate-500 hover:text-white bg-slate-700/50 p-1.5 rounded-lg ml-1" title="Add to Queue"><i class="fa-regular fa-bookmark text-xs"></i></button>`;
 
+    const safeLink = f.originalLink && /^https?:\/\//i.test(f.originalLink) ? f.originalLink : null;
+
     const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${escapeHTML(t)}</span>`).join('')}</div>` : '';
     const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${escapeHTML(f.summary)}</div>` : '';
     const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${escapeHTML(f.notes)}</div>` : '';
@@ -511,7 +516,7 @@ function renderFicCard(f, container) {
             <div class="flex flex-col items-end justify-between pl-2 min-w-[75px] border-l border-slate-700/50 my-1">
                 <div class="flex items-center gap-1">
                     ${queueBtn}
-                    ${f.originalLink ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(f.originalLink)}', '_blank')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : ''} 
+                    ${safeLink ? `<button type="button" onclick="event.stopPropagation(); window.open('${escapeHTML(safeLink)}', '_blank', 'noopener,noreferrer')" class="text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-500 p-1.5 rounded-lg"><i class="fa-solid fa-up-right-from-square text-xs"></i></button>` : ''} 
                     ${toggleBtn}
                 </div>
                 <div class="text-[10px] text-slate-500 text-right font-mono mt-auto"><span class="block text-white font-bold">${readTime}</span><span class="block">${wordsDisplay}</span>${f.chapters ? `<span class="block">${f.chapters} ch</span>` : ''}</div>
@@ -547,7 +552,12 @@ function renderDiscovery() {
         return; 
     }
     container.innerHTML = '';
-    const shuffled = [...unread].sort(() => 0.5 - Math.random()).slice(0, 5);
+    const arr = [...unread];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    const shuffled = arr.slice(0, 5);
     shuffled.forEach(f => {
         const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()} words` : '—';
         const card = document.createElement('div'); card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
@@ -1013,7 +1023,7 @@ function updateGoalUI() {
     const msg = document.getElementById('goalMessage');
     if(currentVal >= target && target > 1) { 
         msg.innerText = "Goal Reached! Amazing!"; 
-        msg.className = "text-center text-[10px] text-emerald-400 mt-2 font-bold"; 
+        msg.className = "text-center text-[10px] goal-message-success mt-2 font-bold"; 
     } else { 
         msg.innerText = `Tracking ${safeType} for ${currentYear}`; 
         msg.className = "text-center text-[10px] text-slate-500 mt-2 italic"; 
@@ -1181,6 +1191,13 @@ function deleteFic() {
 function handleFormSubmit(e) {
     e.preventDefault(); 
     const id = document.getElementById('editId').value;
+    const titleVal = document.getElementById('inpTitle').value.trim();
+    if (!titleVal) {
+        document.getElementById('inpTitle').focus();
+        document.getElementById('inpTitle').style.borderColor = 'rgb(239 68 68)';
+        setTimeout(() => document.getElementById('inpTitle').style.borderColor = '', 2000);
+        return;
+    }
     const sortedDates = [...tempDates].sort();
     const latestDate = sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null;
 
@@ -1228,9 +1245,19 @@ function handleFileUpload(e) {
             const j = JSON.parse(ev.target.result); 
             const ficsToImport = Array.isArray(j) ? j : (j.fics || []); 
             
-            if(!confirm(`You currently have ${fics.length} fics. This backup contains ${ficsToImport.length} fics. Importing will permanently replace your library. Continue?`)) {
+            if(!confirm(`You currently have ${fics.length} fics. This backup contains ${ficsToImport.length} fics. Importing will permanently replace your library. A backup of your current data will be downloaded first. Continue?`)) {
                 e.target.value = '';
                 return;
+            }
+            
+            // Auto-backup current data before replacing
+            if (fics.length > 0) {
+                const backup = document.createElement('a');
+                backup.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({database_version:"1.0", fics:fics}, null, 2));
+                backup.download = `ficlib_pre_import_backup_${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(backup);
+                backup.click();
+                backup.remove();
             }
             
             fics = ficsToImport;
