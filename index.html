@@ -269,13 +269,14 @@
     </div>
 
     <div id="ficModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-300">
-        <div class="bg-slate-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-3xl p-6 h-[90vh] sm:h-auto sm:max-h-[90vh] shadow-2xl border border-slate-700/50 flex flex-col relative overscroll-contain overflow-hidden">
-            <div class="flex justify-between items-center mb-6 sticky top-0 bg-slate-800 z-20 pb-2 border-b border-slate-700 pt-2">
+        <div class="bg-slate-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-3xl pt-6 h-[90vh] sm:h-auto sm:max-h-[90vh] shadow-2xl border border-slate-700/50 flex flex-col relative overflow-hidden">
+            
+            <div class="flex justify-between items-center mb-4 px-6 z-20 pb-4 border-b border-slate-700 shrink-0">
                 <h2 id="modalTitle" class="text-xl font-bold font-heading text-white">Add Fic</h2>
                 <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 hover:bg-slate-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
           
-            <form id="ficForm" class="space-y-4 flex-1 min-h-0⁠ overflow-y-auto overflow-x-hidden no-scrollbar pb-6 overscroll-contain">
+            <form id="ficForm" class="space-y-4 flex-1 min-h-0 overflow-y-auto no-scrollbar px-6 pb-6">
                 <input type="hidden" id="editId">
                 <input type="text" id="inpTitle" placeholder="Fic Title *" class="input-field text-lg font-bold placeholder-slate-500" required>
                 <div class="grid grid-cols-2 gap-3"><input type="text" id="inpAuthor" placeholder="Author" class="input-field"><input type="text" id="inpFandom" placeholder="Fandom(s) (comma separated)" class="input-field"></div>
@@ -325,12 +326,12 @@
                     <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Ships</label><select id="selShipsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpShips', 'selShipsHelper')"><option value="">Select used</option></select></div><textarea id="inpShips" placeholder="e.g. Draco/Hermione" rows="1" class="input-field text-sm"></textarea></div>
                     <div><div class="flex justify-between items-center mb-1"><label class="text-xs text-slate-400 ml-1 font-bold">Tags</label><select id="selTagsHelper" class="bg-slate-700 text-[10px] text-indigo-300 border-none rounded px-2 py-1 max-w-[120px] custom-select focus:ring-0" onchange="pickSuggestion('inpTags', 'selTagsHelper')"><option value="">Select used</option></select></div><textarea id="inpTags" placeholder="e.g. Slow Burn, AU" rows="1" class="input-field text-sm"></textarea></div>
                 </div>
-                
-                <div class="sticky bottom-0 bg-slate-800/95 backdrop-blur-md pt-4 pb-2 border-t border-slate-700 z-20 flex gap-3 mt-6 -mx-6 px-6">
-                    <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-400 p-3 rounded-xl font-bold w-1/4 transition-colors border border-red-500/20"><i class="fa-solid fa-trash"></i></button>
-                    <button type="submit" class="w-full btn-accent text-white p-3 rounded-xl font-bold flex-1 shadow-lg transition-all transform active:scale-95">Save Fic</button>
-                </div>
             </form>
+
+            <div class="bg-slate-800 border-t border-slate-700 p-6 z-20 flex gap-3 shrink-0">
+                <button type="button" id="btnDelete" onclick="deleteFic()" class="hidden bg-red-500/10 hover:bg-red-500/20 text-red-400 p-3 rounded-xl font-bold w-1/4 transition-colors border border-red-500/20"><i class="fa-solid fa-trash"></i></button>
+                <button type="submit" form="ficForm" class="w-full btn-accent text-white p-3 rounded-xl font-bold flex-1 shadow-lg transition-all transform active:scale-95">Save Fic</button>
+            </div>
         </div>
     </div>
 
