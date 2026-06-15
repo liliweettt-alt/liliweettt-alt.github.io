@@ -52,7 +52,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(f.reread_status) { f.rereadStatus = f.reread_status; delete f.reread_status; }
                 if(f.date_finished) { f.dateFinished = f.date_finished; delete f.date_finished; }
                 if(f.original_link) { f.originalLink = f.original_link; delete f.original_link; }
-                if(typeof f.fandom === 'string') f.fandom = f.fandom.trim();
+                
+                // Migrate fandom from string to array for Crossover support
+                if(typeof f.fandom === 'string') {
+                    f.fandom = f.fandom.trim() ? [f.fandom.trim()] : [];
+                }
+                
+                // Set default availability
+                if(!f.availability) f.availability = 'public';
+
                 if(!f.finishedDates) f.finishedDates = f.dateFinished ? [f.dateFinished] : [];
             });
         } catch(e) { console.error("Data load error", e); fics = []; }
@@ -185,7 +193,7 @@ function switchStatsView(view) {
 function populateFilterDropdowns() {
     const shipSet = new Set(), tagSet = new Set(), fandomSet = new Set(), cwSet = new Set();
     fics.forEach(f => { 
-        if(f.fandom) fandomSet.add(f.fandom.trim());
+        (f.fandom || []).forEach(fan => fandomSet.add(fan.trim()));
         (f.ships || []).forEach(s => shipSet.add(s.trim())); 
         (f.tags || []).forEach(t => tagSet.add(t.trim())); 
         (f.cws || []).forEach(c => cwSet.add(c.trim()));
@@ -193,6 +201,7 @@ function populateFilterDropdowns() {
     
     const fill = (id, items, label) => {
         const select = document.getElementById(id);
+        if (!select) return;
         const currentVal = select.value;
         select.innerHTML = `<option value="all">${label}</option>`;
         items.sort((a,b) => a.localeCompare(b)).forEach(i => { 
@@ -211,17 +220,19 @@ function populateFilterDropdowns() {
     fill('filterTags', Array.from(tagSet), 'Tag: All');
     
     const excludeSelect = document.getElementById('filterExcludeCW');
-    const currentExclude = excludeSelect.value;
-    excludeSelect.innerHTML = `<option value="none">Exclude CW: None</option>`;
-    Array.from(cwSet).sort((a,b) => a.localeCompare(b)).forEach(i => { 
-        if(i) { 
-            const opt = document.createElement('option'); 
-            opt.value = i; 
-            opt.innerText = i; 
-            excludeSelect.appendChild(opt); 
-        }
-    });
-    if(Array.from(cwSet).includes(currentExclude)) excludeSelect.value = currentExclude;
+    if (excludeSelect) {
+        const currentExclude = excludeSelect.value;
+        excludeSelect.innerHTML = `<option value="none">Exclude CW: None</option>`;
+        Array.from(cwSet).sort((a,b) => a.localeCompare(b)).forEach(i => { 
+            if(i) { 
+                const opt = document.createElement('option'); 
+                opt.value = i; 
+                opt.innerText = i; 
+                excludeSelect.appendChild(opt); 
+            }
+        });
+        if(Array.from(cwSet).includes(currentExclude)) excludeSelect.value = currentExclude;
+    }
 }
 
 function populateHelperDropdowns() {
@@ -287,6 +298,10 @@ function clearFilters() {
     document.getElementById('filterTags').value = 'all';
     document.getElementById('filterExcludeCW').value = 'none';
     document.getElementById('filterChapters').value = 'all';
+    
+    const availabilityFilter = document.getElementById('filterAvailability');
+    if (availabilityFilter) availabilityFilter.value = 'all';
+
     renderLibrary();
 }
 
@@ -332,6 +347,7 @@ function renderQueue() {
         const title = escapeHTML(f.title);
         const author = escapeHTML(f.author || 'Unknown');
         const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()}w` : '—';
+        const fandomText = (f.fandom && f.fandom.length > 0) ? escapeHTML(f.fandom.join(', ')) : 'No Fandom';
         
         const card = document.createElement('div');
         card.className = 'fic-card p-3 rounded-xl border border-slate-700/50 mb-3 flex items-center gap-3 shadow-md';
@@ -343,7 +359,7 @@ function renderQueue() {
             <div class="flex-1 min-w-0 cursor-pointer" onclick="openEditModal('${id}')">
                 <h3 class="font-bold text-sm text-white truncate">${title}</h3>
                 <p class="text-xs text-slate-400 truncate">${author}</p>
-                <p class="text-[10px] text-slate-500 mt-1">${wordsDisplay} • ${escapeHTML(f.fandom)}</p>
+                <p class="text-[10px] text-slate-500 mt-1">${wordsDisplay} • ${fandomText}</p>
             </div>
             <button onclick="removeFromQueue('${id}')" class="text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 p-3 rounded-xl transition-colors"><i class="fa-solid fa-bookmark"></i></button>
         `;
@@ -366,14 +382,19 @@ function renderLibrary() {
     const tagFilter = document.getElementById('filterTags').value;
     const excludeCwFilter = document.getElementById('filterExcludeCW').value;
     const chapterFilter = document.getElementById('filterChapters').value;
+    
+    const filterAvailabilityEl = document.getElementById('filterAvailability');
+    const availabilityFilter = filterAvailabilityEl ? filterAvailabilityEl.value : 'all';
+    
     const sortMode = document.getElementById('sortOption').value;
 
     try {
         let filtered = fics.filter(f => {
+            if (availabilityFilter !== 'all' && (f.availability || 'public') !== availabilityFilter) return false;
             if (statusFilter !== 'all' && (f.rereadStatus || 'unread').toLowerCase() !== statusFilter) return false;
             if (completionFilter !== 'all' && (f.status || 'wip').toLowerCase() !== completionFilter) return false;
             if (coverFilter !== 'all') { const hasCover = (f.coverStatus === 'yes'); if (coverFilter === 'yes' && !hasCover) return false; if (coverFilter === 'not' && hasCover) return false; }
-            if (fandomFilter !== 'all' && (!f.fandom || f.fandom.trim() !== fandomFilter)) return false;
+            if (fandomFilter !== 'all' && (!f.fandom || !f.fandom.includes(fandomFilter))) return false;
             
             if (excludeCwFilter !== 'none' && f.cws && f.cws.includes(excludeCwFilter)) return false;
             
@@ -382,7 +403,7 @@ function renderLibrary() {
             
             const chaps = f.chapters || 0;
             if (chapterFilter === 'short' && chaps >= 10) return false; if (chapterFilter === 'medium' && (chaps < 10 || chaps > 50)) return false; if (chapterFilter === 'long' && chaps <= 50) return false;
-            if (search) { const txt = `${f.title} ${f.series || ''} ${f.fandom} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase(); return txt.includes(search); }
+            if (search) { const txt = `${f.title} ${f.series || ''} ${(f.fandom||[]).join(' ')} ${f.author} ${(f.ships||[]).join(' ')} ${(f.tags||[]).join(' ')}`.toLowerCase(); return txt.includes(search); }
             return true;
         });
 
@@ -406,7 +427,8 @@ function renderLibrary() {
                 const d = parseDateLocal(lastDate); return d ? d.getTime() : 0; 
             });
             displayList.push({ 
-                type: 'series', title: seriesName, fandom: seriesFics[0].fandom, 
+                type: 'series', title: seriesName, 
+                fandom: seriesFics[0].fandom && seriesFics[0].fandom.length > 0 ? seriesFics[0].fandom[0] : 'Unknown', 
                 author: seriesFics[0].author, totalWords: seriesFics.reduce((sum, f) => sum + (f.wordcount||0), 0), 
                 items: seriesFics, latestTimestamp: Math.max(...dates) 
             });
@@ -464,6 +486,10 @@ function renderFicCard(f, container) {
     const isOnHold = f.rereadStatus === 'onhold';
     const isComplete = (f.status || 'wip').toLowerCase() === 'complete';
     
+    let availabilityBadge = '';
+    if (f.availability === 'mystery') availabilityBadge = '<span class="badge bg-slate-800 text-slate-400 border border-slate-700"><i class="fa-solid fa-lock mr-1"></i> Mystery</span>';
+    if (f.availability === 'deleted') availabilityBadge = '<span class="badge bg-red-900/30 text-red-400 border border-red-500/30"><i class="fa-solid fa-trash mr-1"></i> Deleted</span>';
+
     const statusBadge = isComplete ? '<span class="badge bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Complete</span>' : '<span class="badge bg-amber-900/30 text-amber-400 border border-amber-500/30">WIP</span>';
     const coverBadge = f.coverStatus === 'yes' ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' : '';
     
@@ -500,6 +526,7 @@ function renderFicCard(f, container) {
     const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${escapeHTML(f.notes)}</div>` : '';
 
     const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()}w` : '—';
+    const fandomBadges = (f.fandom && f.fandom.length > 0 ? f.fandom : ['No Fandom']).map(fan => `<span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1">${escapeHTML(fan)}</span>`).join('');
 
     const item = document.createElement('div');
     item.className = 'fic-card p-4 rounded-xl relative group mb-3';
@@ -511,11 +538,11 @@ function renderFicCard(f, container) {
     item.innerHTML = `
         <div class="flex justify-between">
             <div class="flex-1 min-w-0 pr-3">
-                <div class="flex items-start justify-between"><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1">${escapeHTML(f.fandom || 'No Fandom')}</span></div>
+                <div class="flex flex-wrap items-start justify-start">${fandomBadges}</div>
                 ${seriesHtml}
                 <h3 class="font-bold text-lg text-white truncate leading-tight mt-0.5 mb-0.5">${escapeHTML(f.title)}</h3>
                 <p class="text-xs text-slate-400 mb-2 truncate">${escapeHTML(f.author || 'Unknown')}</p>
-                <div class="flex flex-wrap items-center gap-2 mb-1">${statusBadge} ${coverBadge} ${readBadge} ${rereadBadge}</div>
+                <div class="flex flex-wrap items-center gap-2 mb-1">${availabilityBadge} ${statusBadge} ${coverBadge} ${readBadge} ${rereadBadge}</div>
                 <div class="mt-2 flex flex-wrap gap-y-1">${cwHtml} ${shipHtml}</div>
             </div>
             <div class="flex flex-col items-end justify-between pl-2 min-w-[75px] border-l border-slate-700/50 my-1">
@@ -567,8 +594,9 @@ function renderDiscovery() {
         const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()} words` : '—';
         const card = document.createElement('div'); card.className = 'fic-card p-5 rounded-xl border border-indigo-500/20 shadow-lg';
         const cwHtml = (f.cws || []).map(c => `<span class="cw-chip">${escapeHTML(c)}</span>`).join('');
+        const fandomBadges = (f.fandom && f.fandom.length > 0 ? f.fandom : ['No Fandom']).map(fan => `<span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1">${escapeHTML(fan)}</span>`).join('');
         
-        card.innerHTML = `<div class="flex justify-between items-start mb-2"><div><span class="badge bg-slate-700 text-slate-300 border border-slate-600 mb-1">${escapeHTML(f.fandom)}</span><h3 class="text-xl font-bold text-white leading-tight mt-1">${escapeHTML(f.title)}</h3><p class="text-sm text-slate-400">by ${escapeHTML(f.author)}</p></div></div><div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${escapeHTML(s)}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${escapeHTML(t)}</span>`).join('')}</div><div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${escapeHTML(f.summary || 'No summary.')}</div><div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${wordsDisplay} • ${calculateTime(f.wordcount)}</span><button type="button" class="text-xs text-slate-500 hover:text-white discovery-detail-btn">Details</button></div>`;
+        card.innerHTML = `<div class="flex justify-between items-start mb-2"><div><div class="mb-1">${fandomBadges}</div><h3 class="text-xl font-bold text-white leading-tight mt-1">${escapeHTML(f.title)}</h3><p class="text-sm text-slate-400">by ${escapeHTML(f.author)}</p></div></div><div class="flex flex-wrap gap-2 mb-3">${cwHtml} ${(f.ships||[]).map(s=>`<span class="text-indigo-300 text-xs font-bold mr-2">${escapeHTML(s)}</span>`).join('')}${(f.tags||[]).slice(0,5).map(t=>`<span class="tag-chip">${escapeHTML(t)}</span>`).join('')}</div><div class="bg-slate-900/50 p-3 rounded-lg text-sm text-slate-300 italic mb-3 border-l-2 border-slate-600">${escapeHTML(f.summary || 'No summary.')}</div><div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500 font-mono">${wordsDisplay} • ${calculateTime(f.wordcount)}</span><button type="button" class="text-xs text-slate-500 hover:text-white discovery-detail-btn">Details</button></div>`;
         
         card.querySelector('.discovery-detail-btn').onclick = () => openEditModal(f.id);
         
@@ -626,10 +654,13 @@ function renderFandomPhases() {
                 if (!d) return;
                 const monthDiff = (now.getFullYear() - d.getFullYear()) * 12 + (now.getMonth() - d.getMonth());
                 if (monthDiff >= 0 && monthDiff < 12) {
-                    const fan = f.fandom ? f.fandom.trim() : 'Unknown';
-                    recentFandomCount[fan] = (recentFandomCount[fan] || 0) + 1;
-                    const bucketIndex = 11 - monthDiff;
-                    buckets[bucketIndex].fandoms[fan] = (buckets[bucketIndex].fandoms[fan] || 0) + 1;
+                    const fans = (f.fandom && f.fandom.length > 0) ? f.fandom : ['Unknown'];
+                    fans.forEach(fan => {
+                        fan = fan.trim();
+                        recentFandomCount[fan] = (recentFandomCount[fan] || 0) + 1;
+                        const bucketIndex = 11 - monthDiff;
+                        buckets[bucketIndex].fandoms[fan] = (buckets[bucketIndex].fandoms[fan] || 0) + 1;
+                    });
                 }
             });
         }
@@ -855,10 +886,10 @@ function generateShareCard() {
             });
 
             if (readsThisYear > 0) {
-                if (f.fandom) {
-                    const fan = f.fandom.trim();
+                (f.fandom || []).forEach(fan => {
+                    fan = fan.trim();
                     fandomCount[fan] = (fandomCount[fan] || 0) + readsThisYear;
-                }
+                });
                 (f.ships || []).forEach(s => {
                     const ship = s.trim();
                     shipCount[ship] = (shipCount[ship] || 0) + readsThisYear;
@@ -887,7 +918,6 @@ function generateShareCard() {
     const fontHeading = root.getPropertyValue('--font-heading').trim().replace(/['"]/g, '') || 'sans-serif';
     const fontBody = root.getPropertyValue('--font-body').trim().replace(/['"]/g, '') || 'sans-serif';
 
-    // FIXED: Changed all colors from --c- to --color-
     ctx.fillStyle = getRgb('--color-slate-900');
     ctx.fillRect(0, 0, 1080, 1080);
 
@@ -1139,8 +1169,12 @@ function openEditModal(id) {
     document.getElementById('modalTitle').innerText = 'Edit Fic';
     document.getElementById('inpTitle').value = f.title || '';
     document.getElementById('inpAuthor').value = f.author || '';
-    document.getElementById('inpFandom').value = f.fandom || '';
+    document.getElementById('inpFandom').value = (f.fandom || []).join(', ');
     document.getElementById('inpStatus').value = f.status || 'wip';
+    
+    const inpAvailability = document.getElementById('inpAvailability');
+    if(inpAvailability) inpAvailability.value = f.availability || 'public';
+    
     document.getElementById('inpSummary').value = f.summary || '';
     document.getElementById('inpNotes').value = f.notes || '';   
     document.getElementById('inpLink').value = f.originalLink || '';
@@ -1206,14 +1240,16 @@ function handleFormSubmit(e) {
     const sortedDates = [...tempDates].sort();
     const latestDate = sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null;
 
+    const inpAvailability = document.getElementById('inpAvailability');
     const obj = {
         id: id || crypto.randomUUID(), 
         title: document.getElementById('inpTitle').value, 
         author: document.getElementById('inpAuthor').value, 
-        fandom: document.getElementById('inpFandom').value.trim(),
+        fandom: document.getElementById('inpFandom').value.split(',').map(s=>s.trim()).filter(s=>s),
         originalLink: document.getElementById('inpLink').value, 
         rereadStatus: document.getElementById('inpReadStatus').value, 
         coverStatus: document.getElementById('inpCoverStatus').value,
+        availability: inpAvailability ? inpAvailability.value : 'public',
         status: document.getElementById('inpStatus').value, 
         wordcount: parseInt(document.getElementById('inpWords').value) || 0, 
         chapters: parseInt(document.getElementById('inpChapters').value) || 0,
@@ -1255,7 +1291,6 @@ function handleFileUpload(e) {
                 return;
             }
             
-            // Auto-backup current data before replacing
             if (fics.length > 0) {
                 const backup = document.createElement('a');
                 backup.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({database_version:"1.0", fics:fics}, null, 2));
