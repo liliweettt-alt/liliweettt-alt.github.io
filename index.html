@@ -97,6 +97,12 @@
                         <option value="onhold">On Hold</option>
                         <option value="unread">Unread</option>
                     </select>
+                    <select id="filterAvailability" onchange="renderLibrary()" class="filter-dropdown">
+                        <option value="all">Availability: All</option>
+                        <option value="public">Public</option>
+                        <option value="mystery">Mystery</option>
+                        <option value="deleted">Deleted</option>
+                    </select>
                     <select id="filterCompletion" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Status: All</option><option value="complete">Complete</option><option value="wip">WIP</option></select>
                     <select id="filterCover" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Cover: All</option><option value="yes">Has Cover</option><option value="not">No Cover</option></select>
                     <select id="filterFandom" onchange="renderLibrary()" class="filter-dropdown"><option value="all">Fandom: All</option></select>
@@ -193,7 +199,6 @@
             <div id="view-stats-monthly" class="hidden animate-fade-in">
                 <div class="flex justify-between items-center mb-6"><h1 class="text-2xl font-bold font-heading text-white">Monthly Tracker</h1><input type="month" id="monthPicker" class="input-field w-auto text-xs py-1.5 px-3 bg-slate-800 border-indigo-500/50" onchange="renderMonthlyStats()"></div>
                 <div id="monthly-content">
-                    
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col justify-center min-w-0">
                             <p class="text-slate-400 text-[10px] uppercase font-bold mb-1 truncate">Words this Month</p>
@@ -269,11 +274,11 @@
                 <h2 id="modalTitle" class="text-xl font-bold font-heading text-white">Add Fic</h2>
                 <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-700 text-slate-300 hover:bg-slate-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
+          
             <form id="ficForm" class="space-y-4 flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-6 overscroll-contain">
                 <input type="hidden" id="editId">
                 <input type="text" id="inpTitle" placeholder="Fic Title *" class="input-field text-lg font-bold placeholder-slate-500" required>
-                <div class="grid grid-cols-2 gap-3"><input type="text" id="inpAuthor" placeholder="Author" class="input-field"><input type="text" id="inpFandom" placeholder="Fandom" class="input-field"></div>
+                <div class="grid grid-cols-2 gap-3"><input type="text" id="inpAuthor" placeholder="Author" class="input-field"><input type="text" id="inpFandom" placeholder="Fandom(s) (comma separated)" class="input-field"></div>
                 <div class="grid grid-cols-4 gap-3 bg-slate-700/30 p-2 rounded-lg border border-slate-700">
                     <div class="col-span-3"><input type="text" id="inpSeries" placeholder="Series Name (Optional)" class="input-field text-sm bg-slate-800"></div>
                     <div class="relative"><span class="absolute right-2 top-3 text-[10px] text-slate-500">Part#</span><input type="number" id="inpSeriesPart" placeholder="1" class="input-field text-sm bg-slate-800"></div>
@@ -289,6 +294,14 @@
                         </select>
                         <select id="inpStatus" class="input-field custom-select bg-slate-800"><option value="wip">WIP</option><option value="complete">Complete</option></select>
                     </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <select id="inpCoverStatus" class="input-field custom-select bg-slate-800"><option value="not">No Cover</option><option value="yes">Cover Made</option></select>
+                        <select id="inpAvailability" class="input-field custom-select bg-slate-800">
+                            <option value="public">Public</option>
+                            <option value="mystery">Mystery Work</option>
+                            <option value="deleted">Deleted</option>
+                        </select>
+                    </div>
                     <div id="divDateFinished" class="hidden w-full animate-fade-in space-y-2">
                         <label class="text-xs text-emerald-400 font-bold ml-1 block">Finished Dates</label>
                         <div id="dateListContainer" class="space-y-2 mb-2"></div>
@@ -301,7 +314,6 @@
                         <label class="text-xs text-blue-400 font-bold ml-1 block">Words Read So Far</label>
                         <input type="number" id="inpReadProgress" placeholder="0" class="input-field bg-slate-800 text-xs">
                     </div>
-                    <select id="inpCoverStatus" class="input-field custom-select bg-slate-800"><option value="not">No Cover</option><option value="yes">Cover Made</option></select>
                 </div>
                 <div class="grid grid-cols-2 gap-3"><div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">words</span><input type="number" id="inpWords" placeholder="0" class="input-field"></div><div class="relative"><span class="absolute right-3 top-3 text-xs text-slate-500">ch.</span><input type="number" id="inpChapters" placeholder="0" class="input-field"></div></div>
                 <div class="space-y-3">
