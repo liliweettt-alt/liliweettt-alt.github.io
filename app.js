@@ -53,12 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(f.date_finished) { f.dateFinished = f.date_finished; delete f.date_finished; }
                 if(f.original_link) { f.originalLink = f.original_link; delete f.original_link; }
                 
-                // Migrate fandom from string to array for Crossover support
                 if(typeof f.fandom === 'string') {
                     f.fandom = f.fandom.trim() ? [f.fandom.trim()] : [];
                 }
                 
-                // Set default availability
                 if(!f.availability) f.availability = 'public';
 
                 if(!f.finishedDates) f.finishedDates = f.dateFinished ? [f.dateFinished] : [];
@@ -239,11 +237,13 @@ function populateHelperDropdowns() {
     const shipSet = new Set();
     const tagSet = new Set();
     const cwSet = new Set();
+    const fandomSet = new Set();
     
     fics.forEach(f => { 
         (f.ships || []).forEach(s => shipSet.add(s.trim())); 
         (f.tags || []).forEach(t => tagSet.add(t.trim())); 
         (f.cws || []).forEach(c => cwSet.add(c.trim()));
+        (f.fandom || []).forEach(fan => fandomSet.add(fan.trim()));
     });
     
     const fillSelect = (id, items) => {
@@ -264,6 +264,7 @@ function populateHelperDropdowns() {
     fillSelect('selShipsHelper', Array.from(shipSet));
     fillSelect('selTagsHelper', Array.from(tagSet));
     fillSelect('selCWHelper', Array.from(cwSet));
+    fillSelect('selFandomHelper', Array.from(fandomSet));
 }
 
 function pickSuggestion(targetInputId, selectDropdownId) {
