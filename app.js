@@ -1313,12 +1313,18 @@ function handleFileUpload(e) {
 }
 
 function exportData() { 
+    const dataStr = JSON.stringify({database_version:"1.0", fics:fics}, null, 2); 
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); 
-    a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({database_version:"1.0", fics:fics}, null, 2)); 
+    a.href = url; 
     a.download = "ficlib_backup.json"; 
     document.body.appendChild(a); 
     a.click(); 
-    a.remove(); 
+    setTimeout(() => {
+        document.body.removeChild(a); 
+        window.URL.revokeObjectURL(url);
+    }, 0);
 }
 
 function clearData() { 
