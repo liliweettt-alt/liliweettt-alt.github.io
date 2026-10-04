@@ -234,9 +234,9 @@ function renderFicCard(f, container) {
     const coverBadge = f.coverStatus === 'yes' ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' : '';
     
     let readBadge = '';
-    if (isRead) readBadge = '<span class="text-emerald-400 text-xs flex items-center gap-1"><i class="fa-solid fa-check"></i> Read</span>';
-    if (isReading) readBadge = '<span class="text-blue-400 text-xs flex items-center gap-1"><i class="fa-solid fa-book-open-reader"></i> Reading</span>';
-    if (isOnHold) readBadge = '<span class="text-slate-400 text-xs flex items-center gap-1"><i class="fa-solid fa-pause"></i> On Hold</span>';
+if (isRead) readBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400 border-l-2 border-emerald-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">Read ✓</span>';
+if (isReading) readBadge = '<span class="px-2 py-0.5 rounded-full bg-cyan-900/40 text-cyan-400 border-l-2 border-cyan-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">Reading 📖</span>';
+if (isOnHold) readBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 border-l-2 border-amber-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">On Hold ⏸</span>';
 
     let rereadBadge = '';
     if (f.finishedDates && f.finishedDates.length > 1) {
@@ -262,7 +262,7 @@ function renderFicCard(f, container) {
     const safeLink = f.originalLink && /^https?:\/\//i.test(f.originalLink) ? f.originalLink : null;
 
     const tagsBlock = hasTags ? `<div class="flex flex-wrap gap-2 mb-3 pt-2">${(f.tags||[]).map(t=>`<span class="tag-chip">${escapeHTML(t)}</span>`).join('')}</div>` : '';
-    const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-relaxed mb-3">${escapeHTML(f.summary)}</div>` : '';
+    const summaryBlock = hasSummary ? `<div class="text-sm text-slate-300 italic leading-loose tracking-wide mb-3">${escapeHTML(f.summary)}</div>` : '';
     const notesBlock = hasNotes ? `<div class="bg-indigo-900/20 border border-indigo-500/30 p-3 rounded-lg text-xs text-indigo-200"><strong class="block text-indigo-400 mb-1 uppercase tracking-wide">My Notes</strong>${escapeHTML(f.notes)}</div>` : '';
 
     const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()}w` : '—';
@@ -280,7 +280,7 @@ function renderFicCard(f, container) {
             <div class="flex-1 min-w-0 pr-3">
                 <div class="flex flex-wrap items-start justify-start">${fandomBadges}</div>
                 ${seriesHtml}
-                <h3 class="font-bold text-lg text-white truncate leading-tight mt-0.5 mb-0.5">${escapeHTML(f.title)}</h3>
+                <h3 class="font-bold text-xl font-heading text-white truncate leading-tight mt-1 mb-1">${escapeHTML(f.title)}</h3>
                 <p class="text-xs text-slate-400 mb-2 truncate">${escapeHTML(f.author || 'Unknown')}</p>
                 <div class="flex flex-wrap items-center gap-2 mb-1">${availabilityBadge} ${statusBadge} ${coverBadge} ${readBadge} ${rereadBadge}</div>
                 <div class="mt-2 flex flex-wrap gap-y-1">${cwHtml} ${shipHtml}</div>
