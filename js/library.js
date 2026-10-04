@@ -234,9 +234,9 @@ function renderFicCard(f, container) {
     const coverBadge = f.coverStatus === 'yes' ? '<span class="badge bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"><i class="fa-solid fa-image mr-1"></i> Cover</span>' : '';
     
     let readBadge = '';
-if (isRead) readBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400 border-l-2 border-emerald-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">Read ✓</span>';
-if (isReading) readBadge = '<span class="px-2 py-0.5 rounded-full bg-cyan-900/40 text-cyan-400 border-l-2 border-cyan-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">Reading 📖</span>';
-if (isOnHold) readBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 border-l-2 border-amber-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">On Hold ⏸</span>';
+if (isRead) readBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-900/40 text-emerald-400 border-l-2 border-emerald-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">✅</span>';
+if (isReading) readBadge = '<span class="px-2 py-0.5 rounded-full bg-cyan-900/40 text-cyan-400 border-l-2 border-cyan-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">📖</span>';
+if (isOnHold) readBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 border-l-2 border-amber-500 text-[10px] font-bold uppercase tracking-wider shadow-sm">⏸</span>';
 
     let rereadBadge = '';
     if (f.finishedDates && f.finishedDates.length > 1) {
@@ -268,8 +268,14 @@ if (isOnHold) readBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-900/40
     const wordsDisplay = f.wordcount ? `${f.wordcount.toLocaleString()}w` : '—';
     const fandomBadges = (f.fandom && f.fandom.length > 0 ? f.fandom : ['No Fandom']).map(fan => `<span class="badge bg-slate-700 text-slate-300 border border-slate-600 mr-2 mb-1">${escapeHTML(fan)}</span>`).join('');
 
+        let tabColor = 'var(--accent2)';
+    if (isRead) tabColor = '#10b981';
+    if (isReading) tabColor = '#06b6d4';
+    if (isOnHold) tabColor = '#f59e0b';
+
     const item = document.createElement('div');
     item.className = 'fic-card p-4 rounded-xl relative group mb-3';
+    item.setAttribute('style', `border-left-color: ${tabColor} !important;`);
     
     item.onclick = (e) => { 
         if(!e.target.closest('button')) openEditModal(f.id); 
@@ -280,7 +286,7 @@ if (isOnHold) readBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-900/40
             <div class="flex-1 min-w-0 pr-3">
                 <div class="flex flex-wrap items-start justify-start">${fandomBadges}</div>
                 ${seriesHtml}
-                <h3 class="font-bold text-xl font-heading text-white truncate leading-tight mt-1 mb-1">${escapeHTML(f.title)}</h3>
+                <h3 class="font-bold text-xl font-heading text-white leading-tight mt-1 mb-1">${escapeHTML(f.title)}</h3>
                 <p class="text-xs text-slate-400 mb-2 truncate">${escapeHTML(f.author || 'Unknown')}</p>
                 <div class="flex flex-wrap items-center gap-2 mb-1">${availabilityBadge} ${statusBadge} ${coverBadge} ${readBadge} ${rereadBadge}</div>
                 <div class="mt-2 flex flex-wrap gap-y-1">${cwHtml} ${shipHtml}</div>
