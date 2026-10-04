@@ -45,73 +45,73 @@
 }
 
 [data-theme="archive"] {
-    --color-slate-100: 245 245 244;
-    --color-slate-300: 214 211 209;
-    --color-slate-400: 168 162 158;
-    --color-slate-500: 120 113 108;
-    --color-slate-600: 87 83 78;
-    --color-slate-700: 68 64 60;
-    --color-slate-800: 41 37 36;
-    --color-slate-900: 28 25 23;
-    --color-slate-950: 12 10 9;
+    --color-slate-100: 225 221 217;
+    --color-slate-300: 195 190 185;
+    --color-slate-400: 150 145 140;
+    --color-slate-500: 110 105 100;
+    --color-slate-600: 85 80 75;
+    --color-slate-700: 65 60 55;
+    --color-slate-800: 48 44 42;
+    --color-slate-900: 36 33 31;
+    --color-slate-950: 24 22 20;
+
+    --color-indigo-200: 230 215 160;
+    --color-indigo-300: 220 195 120;
+    --color-indigo-400: 210 170 80;
+    --color-indigo-500: 190 145 60;
+    --color-indigo-600: 160 115 40;
+    --color-indigo-900: 100 70 25;
     
-    --color-indigo-200: 253 230 138;
-    --color-indigo-300: 252 211 77;
-    --color-indigo-400: 251 191 36;
-    --color-indigo-500: 245 158 11;
-    --color-indigo-600: 217 119 6;
-    --color-indigo-900: 120 53 15;
+    --color-purple-400: 220 140 80;
+    --color-purple-500: 200 110 50;
+    --color-purple-600: 170 85 30;
+    --color-purple-900: 100 45 15;
     
-    --color-purple-400: 251 146 60;
-    --color-purple-500: 249 115 22;
-    --color-purple-600: 234 88 12;
-    --color-purple-900: 124 45 18;
-    
-    --color-white: 245 245 244;
+    --color-white: 225 221 217;
     
     --font-body: 'Lora', serif;
     --font-heading: 'Playfair Display', serif;
 
-    --action: #7c6f3c;
-    --action-hover: #5a5029;
-    --action-text: #d4b96a;
-    --action-bg: rgba(212,185,106,0.15);
+    --action: #6b6038;
+    --action-hover: #50482a;
+    --action-text: #c2aa62;
+    --action-bg: rgba(194, 170, 98, 0.15);
 }
 
 [data-theme="blood"] {
-    --color-slate-100: 231 229 228;
-    --color-slate-300: 200 160 150;
-    --color-slate-400: 150 110 100;
-    --color-slate-500: 110 75 65;
-    --color-slate-600: 75 48 40;
-    --color-slate-700: 55 35 30;
-    --color-slate-800: 35 22 18;
-    --color-slate-900: 20 12 10;
-    --color-slate-950: 10 5 5;
+    --color-slate-100: 215 210 210;
+    --color-slate-300: 185 175 175;
+    --color-slate-400: 145 130 130;
+    --color-slate-500: 105 85 85;
+    --color-slate-600: 75 60 60;
+    --color-slate-700: 55 42 42;
+    --color-slate-800: 42 32 32;
+    --color-slate-900: 30 24 24;
+    --color-slate-950: 20 15 15;
     
-    --color-indigo-200: 254 205 211;
-    --color-indigo-300: 253 164 175;
-    --color-indigo-400: 251 113 133;
-    --color-indigo-500: 244 63 94;
-    --color-indigo-600: 225 29 72;
-    --color-indigo-900: 136 19 55;
+    --color-indigo-200: 235 180 190;
+    --color-indigo-300: 225 140 155;
+    --color-indigo-400: 215 100 115;
+    --color-indigo-500: 195 65 80;
+    --color-indigo-600: 165 40 55;
+    --color-indigo-900: 100 20 30;
     
-    --color-purple-400: 248 113 113;
-    --color-purple-500: 239 68 68;
-    --color-purple-600: 220 38 38;
-    --color-purple-900: 127 29 29;
+    --color-purple-400: 215 100 100;
+    --color-purple-500: 195 65 65;
+    --color-purple-600: 165 40 40;
+    --color-purple-900: 100 20 20;
     
-    --color-white: 231 229 228;
+    --color-white: 215 210 210;
     
     --font-body: 'Crimson Text', serif;
     --font-heading: 'Crimson Text', serif;
     --font-heading-style: italic;
     --font-heading-weight: 700;
 
-    --action: #7f1d1d;
-    --action-hover: #991b1b;
-    --action-text: #fca5a5;
-    --action-bg: rgba(239,68,68,0.15);
+    --action: #702020;
+    --action-hover: #551515;
+    --action-text: #e59090;
+    --action-bg: rgba(195, 65, 65, 0.15);
 }
 
 body { 
